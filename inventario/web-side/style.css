@@ -1,0 +1,381 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap');
+
+/* ==================================================================================
+   1. ESTRUTURA ORIGINAL E RESPONSIVIDADE (INTACTAS)
+   Mantendo a lógica de VW/REM do seu código original para não quebrar o tamanho.
+   ================================================================================== */
+:root {
+	font-size: .9vw;
+    
+    /* VARIÁVEIS DO NOVO VISUAL (AZUL NEON) */
+    --primary: #0a91ff;
+    --primary-glow: rgba(10, 145, 255, 0.4);
+    --bg-glass: rgba(18, 22, 28, 0.95);
+    --slot-bg: rgba(255, 255, 255, 0.04);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --radius: 0.3125rem; /* Equivalente ao seu .3125rem original */
+}
+
+@media (max-width: 78.13vw) {
+	:root {
+		font-size: 1.1vw;
+	}	
+}
+@media (min-width: 88.54vw) {
+	:root {
+		font-size: .9vw;
+	}
+	inventoryActions {
+		width: 5rem;
+		min-width: 5rem;
+	}
+}
+
+* {
+	margin: 0;
+	border: 0;
+	padding: 0;
+	outline: none;
+	user-select: none;
+	text-rendering: auto;
+	box-sizing: border-box;
+	font-family: 'Montserrat', sans-serif;
+}
+
+html, body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100vh;
+	overflow: hidden;
+	background-color: transparent;
+}
+
+body {
+	display: none;
+    color: #fff; /* Força texto branco globalmente */
+}
+
+/* Centralização do Main */
+main {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+    color: #fff;
+	display: flex;
+	overflow: hidden;
+	align-items: center;
+	justify-content: center;
+    /* Fundo escurecido moderno */
+    background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(0,0,0,0.6) 100%);
+}
+
+/* ==================================================================================
+   2. INVENTÁRIO (CONTAINER)
+   ================================================================================== */
+inventory {
+	position: relative;
+	width: auto; /* CORREÇÃO: Deixa a caixa crescer para caber tudo */
+	display: flex;
+	flex-direction: column;
+    
+    /* Novo Visual */
+    background: var(--bg-glass);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+	padding: 1.5rem; /* O padding que estava cortando o slot agora será somado */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    backdrop-filter: transparent(10px);
+}
+
+inventory header {
+	position: relative;
+	width: 100%;
+	height: 6.25rem;
+	color: #fff;
+	display: flex;
+	padding: 0 1rem; /* Ajustado padding */
+    margin-bottom: 0.5rem;
+	align-items: center;
+	justify-content: space-between;
+    
+    /* Visual Limpo */
+	background: transparent;
+    border-bottom: 2px solid var(--slot-bg);
+}
+
+/* Títulos */
+inventory header .title {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+inventory header .title h1 {
+	font-size: 1.4rem;
+    font-weight: 800;
+	text-transform: uppercase;
+    line-height: 1.2;
+    color: #fff;
+}
+
+inventory header .title h1 span {
+	font-weight: 800;
+	color: var(--primary);
+	text-shadow: 0 0 15px var(--primary-glow);
+}
+
+inventory header small {
+	opacity: 0.6;
+	letter-spacing: .0625rem;
+    font-size: 0.65rem;
+    color: #ccc;
+}
+
+inventory header .title h3 {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #fff !important; /* Corrige o texto preto */
+}
+/* Cores do dinheiro */
+.banco { color: #66bb6a !important; font-weight: 700; }
+.carteira { color: #66bb6a !important; font-weight: 700; }
+
+/* Peso */
+inventory header .weight {
+	position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+	width: 7.5rem;
+	height: 2.8125rem;
+	white-space: nowrap;
+}
+
+inventory header .weight h2 { display: none; } /* Remove título antigo */
+
+.weight_info {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.3rem;
+    position: relative !important; /* Sobrescreve original */
+    right: auto !important; bottom: auto !important; /* Reseta posição absoluta antiga */
+}
+
+/* SVG Peso */
+.weightProgress {
+    transform: scale(0.9);
+}
+.weightProgress circle.outer { stroke: rgba(255,255,255,0.05); }
+.weightProgress circle.progress { stroke: var(--primary); filter: drop-shadow(0 0 5px var(--primary)); }
+
+/* Níveis */
+.nivel {
+    margin-top: 2rem; /* Afasta um pouco */
+    width: 100%;
+    text-align: right;
+}
+.bars { display: flex; justify-content: flex-end; gap: 3px; }
+.bar { width: 1.5rem; height: 0.25rem; background: rgba(255,255,255,0.1); border-radius: 2px; }
+.bar.on { background: var(--primary); box-shadow: 0 0 5px var(--primary); }
+.nivel b { font-size: 0.5rem; opacity: 0.5; color: #fff; }
+
+/* Remove a linha azul lateral antiga */
+inventory header::before { display: none; }
+
+
+/* ==================================================================================
+   3. GRID E ITENS (A PARTE CRÍTICA DO DRAG & DROP)
+   Aqui mantemos as dimensões EXATAS do original.
+   ================================================================================== */
+inventory section {
+	display: grid;
+	grid-gap: .3125rem;
+	overflow-y: auto;
+    overflow-x: hidden;
+	margin-top: .3125rem;
+	max-height: 28.75rem;
+    /* Usa as mesmas medidas do original */
+	grid-template-columns: repeat(5, 7.5rem);
+    padding-right: 5px;
+}
+
+/* Scrollbar */
+inventory section::-webkit-scrollbar { width: 4px; }
+inventory section::-webkit-scrollbar-track { background: transparent; }
+inventory section::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+
+/* O ITEM EM SI */
+inventory section .item,
+.ui-draggable {
+    /* Dimensões ORIGINAIS travadas para não crescer */
+	width: 7.5rem; 
+	height: 9.375rem;
+    
+	display: flex;
+    flex-direction: column;
+	align-items: center;
+	justify-content: center;
+    
+    /* Estilo Moderno */
+	border-radius: var(--radius);
+	transition: background .2s, border-color .2s;
+	background: var(--slot-bg);
+	border: 1px solid var(--border-color);
+    position: relative;
+}
+
+/* Hover e Seleção */
+inventory section .item:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--primary);
+    box-shadow: 0 0 15px rgba(10, 145, 255, 0.15);
+}
+
+.hoverControl {
+	background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px dashed var(--primary) !important;
+}
+
+/* Item Povoado (Imagem) */
+inventory section .populated {
+	background-size: 55% !important; /* Tamanho da imagem */
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Topo do Item (Qtd e Peso) */
+.top_item {
+    position: absolute;
+    top: 0.5rem;
+    width: 100%;
+    padding: 0 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    z-index: 2;
+    pointer-events: none; /* Mouse ignora o texto */
+}
+
+/* Nome do Item */
+.item_name {
+	color: #fff;
+	width: 100%;
+	padding: .4375rem;
+	font-size: .6rem;
+	font-weight: 600;
+	text-align: center;
+    text-transform: uppercase;
+    
+    position: absolute;
+    bottom: 0;
+	border-radius: 0 0 var(--radius) var(--radius);
+	background: rgba(0, 0, 0, 0.6);
+    
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+    pointer-events: none; /* Mouse ignora o nome */
+}
+
+/* Durabilidade */
+.durability {
+    position: absolute;
+    bottom: 1.8rem;
+    width: 90%;
+    height: 3px;
+    background: #4caf50;
+    border-radius: 2px;
+    margin: 0 !important; /* Reseta margem original */
+    right: 5% !important; /* Centraliza */
+}
+
+/* ==================================================================================
+   4. AÇÕES CENTRAIS
+   ================================================================================== */
+inventoryActions {
+    z-index: 99;
+	padding: 1rem;
+    width: 9rem; /* Mais largo que original para caber botões bonitos */
+    min-width: 9rem;
+	display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    justify-content: center;
+	align-items: center;
+	border-radius: .3125rem;
+	background: transparent;
+    border: none;
+}
+
+inventoryActions input {
+	width: 100%;
+	padding: 0.8rem;
+	outline: none;
+	color: #fff;
+	border-radius: var(--radius);
+	text-align: center;
+	background: var(--bg-glass);
+    border: 1px solid var(--border-color);
+	font-size: 1rem;
+    font-weight: 700;
+}
+inventoryActions input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+
+inventoryActions button {
+	width: 100%;
+	color: #fff;
+	font-size: .75rem;
+	font-weight: 700;
+	padding: 0.9rem;
+	border-radius: var(--radius);
+	letter-spacing: .0625rem;
+	text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.2s;
+    border: none;
+    box-shadow: none;
+    margin: 0;
+}
+
+inventoryActions button.use { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+inventoryActions button.send { background: linear-gradient(135deg, #000428 0%, #004e92 100%); }
+
+inventoryActions button:hover { transform: scale(1.05); filter: brightness(1.2); }
+.select_hover { transform: scale(1.1); box-shadow: 0 0 20px var(--primary); }
+
+/* ==================================================================================
+   5. CORREÇÃO DEFINITIVA DO DRAG & DROP
+   Isso garante que o item arraste corretamente sem bugar o clique.
+   ================================================================================== */
+.ui-draggable-dragging {
+    /* Força as dimensões ORIGINAIS exatas no clone */
+    width: 7.5rem !important;
+    height: 9.375rem !important;
+    
+    /* Garante que fique no topo */
+    z-index: 9999999 !important;
+    position: fixed !important;
+    
+    /* Visual do clone */
+    background: rgba(18, 22, 28, 0.95) !important;
+    border: 1px solid var(--primary) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 15px var(--primary-glow) !important;
+    
+    /* CRUCIAL: Permite que o mouse 'atravesse' o clone e detecte o slot embaixo */
+    pointer-events: none !important; 
+    
+    /* Ajuste de escala */
+    transform: scale(1.02) !important;
+}
+
+/* Ocultar elementos antigos desnecessários */
+.hotkey, .list_keybar { display: none; }
