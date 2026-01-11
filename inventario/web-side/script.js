@@ -30,6 +30,8 @@ const inSlots = 150;
 let shiftPressed = false;
 let delay = false;
 
+let progressBarInstance = null;
+
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
 /* INIT */
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
@@ -83,7 +85,38 @@ $(document).ready(function () {
                     
                     progressBarInstance.set(progress);
                 }, 16); // Atualiza a cada ~16ms (60fps)
-                break;    
+                break;  
+                
+                
+                case "itemNotify":
+            // Define o sinal (+ ou -) e a classe de cor
+            let modeClass = event.data.mode === "adicionado" ? "add" : "rem";
+            let symbol = event.data.mode === "adicionado" ? "+" : "-";
+            
+            // Define o IP para pegar a imagem (mesma lógica que usamos antes)
+            // Se você já tem uma variável const imageURL definida, use ela.
+            // Caso contrário, use o IP direto:
+            let imgUrl = `http://127.0.0.1/inventario/${event.data.item}.png`; 
+
+            // Cria o HTML do card
+            let html = `
+                <div class="item-notify ${modeClass}">
+                    <img src="${imgUrl}" onerror="this.src='http://127.0.0.1/inventario/error.png'">
+                    <div class="notify-info">
+                        <span>${event.data.name}</span>
+                        <small>${symbol} ${event.data.amount} ${event.data.mode}</small>
+                    </div>
+                </div>
+            `;
+
+            // Adiciona na tela
+            let $element = $(html).appendTo("#notify-container");
+
+            // Remove o elemento da tela depois de 4 segundos (tempo da animação + leitura)
+            setTimeout(() => {
+                $element.remove();
+            }, 4000);
+        break;
 
             case "showVehicles":
                 requestVehicles();

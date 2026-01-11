@@ -52,9 +52,11 @@ html, body {
 }
 
 body {
-    display: block; /* Mudou de none para block */
-    background-color: transparent;
+    display: block; /* IMPORTANTE: Tem que ser block, não none */
+    background-color: transparent; /* Fundo transparente */
     overflow: hidden;
+    width: 100vw;
+    height: 100vh;
 }
 
 .inventory {
@@ -63,7 +65,7 @@ body {
 
 .progress-container {
     position: absolute;
-    top: 50%;
+    bottom: 0%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 150px;
@@ -403,3 +405,70 @@ inventoryActions button:hover { transform: scale(1.05); filter: brightness(1.2);
 
 /* Ocultar elementos antigos desnecessários */
 .hotkey, .list_keybar { display: none; }
+
+/* Container que segura as notificações */
+#notify-container {
+    position: absolute;
+    bottom: 20%;
+    right: 2%;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+    pointer-events: none; /* Para clicar através dele */
+}
+
+/* O Card do Item */
+.item-notify {
+    display: flex;
+    align-items: center;
+    background: rgba(15, 15, 15, 0.9);
+    border-left: 4px solid #fff;
+    border-radius: 5px;
+    padding: 10px;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 3.5s forwards;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* Cores da borda dependendo da ação */
+.item-notify.add { border-color: #00ff88; } /* Verde para adicionar */
+.item-notify.rem { border-color: #ff4d4d; } /* Vermelho para remover */
+
+/* Imagem do item */
+.item-notify img {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+    margin-right: 15px;
+}
+
+/* Textos */
+.notify-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.notify-info span {
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.notify-info small {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* Animações */
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}

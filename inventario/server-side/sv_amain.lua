@@ -618,6 +618,11 @@ if itemType == "beber" then
                                     if item == "agua" then
                                         vRP.giveInventoryItem(user_id, "garrafa_vazia", 1)
                                         TriggerClientEvent("Notify",source,"sucesso","Você guardou a garrafa vazia.")
+									-- Notify Visual da Garrafa Vazia ganhada:
+										TriggerClientEvent("inventory:NotifyItem",source, "garrafa_vazia", "Garrafa Vazia", 1, "adicionado")
+										-- Notify Visual da Agua perdida:
+										TriggerClientEvent("inventory:NotifyItem",source, "agua", "Água", 1, "removido")
+
                                     end
                                     ----------------------------
 
@@ -633,7 +638,7 @@ if itemType == "beber" then
 								end)
 							end
 						end
-						
+
 						if itemType == "comer" then
 							func:setCooldown(user_id, "inventario", 5)
 
@@ -732,6 +737,7 @@ function src.droparItem(slot,amount)
 				local itemName = inv[tostring(slot)].item
 
 				if vRP.tryGetInventoryItem(user_id,itemName, parseInt(amount), true, slot) then
+					TriggerClientEvent("inventory:NotifyItem",source, itemName, vRP.getItemName(itemName), amount, "removido")
 					vRPclient._playAnim(source,true,{{"pickup_object","pickup_low"}},false)
 					src.createDropItem(itemName,parseInt(amount),source)
 					vCLIENT.updateInventory(source, "updateMochila")
@@ -773,6 +779,8 @@ function src.pegarItem(id,slot,amount)
 					else
 						vRP.giveInventoryItem(user_id,tostring(droplist[id].item),parseInt(amount), true, slot)
 					end
+
+					TriggerClientEvent("inventory:NotifyItem",source, droplist[id].item, vRP.getItemName(droplist[id].item), amount, "adicionado")
 					
 					vRP.sendLog("", "O ID "..user_id.." pegou o item do chão "..droplist[id].item.." na quantidade de "..amount.."x.")
 						

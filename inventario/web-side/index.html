@@ -6,9 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario</title>
+    
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" type="text/css" href="https://loadingio.github.io/loading-bar/dist/loading-bar.css" />
-    <script type="text/javascript" src="https://loadingio.github.io/loading-bar/dist/loading-bar.js"></script>
+    
+    <link rel="stylesheet" type="text/css" href="bibs/loading-bar.css" />
+    
+    <script type="text/javascript" src="bibs/loading-bar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
         integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -20,19 +23,20 @@
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
 </head>
 
-<body class="inventory">
+<body>
     <div class="progress-container" style="display:none;">
-    <div id="progressBar" class="ldBar label-center" 
-         data-type="stroke" 
-         data-path="M50 10 A40 40 0 0 1 50 90 A40 40 0 0 1 50 10" 
-         data-stroke="data:ldbar/res,gradient(0,1,#0a91ff,#0a91ff)" 
-         data-stroke-width="5"
-         data-min="0"
-         data-max="100">
+        <div id="progressBar" class="ldBar label-center" 
+             data-type="stroke" 
+             data-path="M50 10 A40 40 0 0 1 50 90 A40 40 0 0 1 50 10" 
+             data-stroke="data:ldbar/res,gradient(0,1,#0a91ff,#0a91ff)" 
+             data-stroke-width="5"
+             data-min="0"
+             data-max="100">
+        </div>
+        <div id="notify-container"></div>
     </div>
-</div>
-    <main>
-        <inventory> 
+
+    <main class="inventory" style="display:none;"> <inventory> 
             <header>
                 <div class="title" id="invLeftTitle">
                     <h1>Inventário <span>Principal</span></h1>
