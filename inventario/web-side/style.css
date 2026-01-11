@@ -52,8 +52,32 @@ html, body {
 }
 
 body {
-	display: none;
-    color: #fff; /* Força texto branco globalmente */
+    display: block; /* Mudou de none para block */
+    background-color: transparent;
+    overflow: hidden;
+}
+
+.inventory {
+    display: none; /* Adicione isso se não tiver */
+}
+
+.progress-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 150px;
+    height: 150px;
+    z-index: 9999;
+    pointer-events: none; /* Permite clicar através da barra */
+}
+
+.ldBar-label {
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
 /* Centralização do Main */

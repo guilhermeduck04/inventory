@@ -603,7 +603,7 @@ function src.useItem(slot, amount)
 							end
 						end
 
-						if itemType == "beber" then
+if itemType == "beber" then
 							func:setCooldown(user_id, "inventario", 5)
 
 							local fome,sede = vRP.itemFood(item)
@@ -611,7 +611,16 @@ function src.useItem(slot, amount)
 							if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
 								TriggerClientEvent("progress",source, 10000)
 								play_drink(source, item, 10000)
-								SetTimeout(10000, function() vRP.upgradeThirst(user_id, tonumber(sede))
+								SetTimeout(10000, function() 
+                                    vRP.upgradeThirst(user_id, tonumber(sede))
+                                    
+                                    -- ADICIONE ESSE BLOCO AQUI
+                                    if item == "agua" then
+                                        vRP.giveInventoryItem(user_id, "garrafa_vazia", 1)
+                                        TriggerClientEvent("Notify",source,"sucesso","Você guardou a garrafa vazia.")
+                                    end
+                                    ----------------------------
+
 									if item == "energetico" then
 										TriggerClientEvent("Notify",source,"sucesso","Energetico utilizado com sucesso.")
 										vCLIENT.setEnergetico(source, true)
@@ -624,7 +633,7 @@ function src.useItem(slot, amount)
 								end)
 							end
 						end
-
+						
 						if itemType == "comer" then
 							func:setCooldown(user_id, "inventario", 5)
 
@@ -2009,6 +2018,8 @@ function play_drink(source, tipo, segundos)
 	vRPclient._CarregarObjeto(source,"amb@world_human_drinking@beer@male@idle_a","idle_a",prop,49,28422)
     SetTimeout(segundos, function() vRPclient._DeletarObjeto(source) end)
 end
+
+
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- COMANDOS

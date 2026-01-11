@@ -12,6 +12,8 @@
 //     }
 // );
 
+const imageURL = "http://127.0.0.1/inventario/"; // Coloque seu IP aqui
+
 function milhar(n) {
     var n = '' + n, t = n.length - 1, novo = '';
 
@@ -32,6 +34,7 @@ let delay = false;
 /* INIT */
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
 $(document).ready(function () {
+    $(".inventory").hide(); // Garante que começa escondido
     window.addEventListener("message", function (event) {
 
         switch (event.data.action) {
@@ -51,6 +54,36 @@ $(document).ready(function () {
             case "updateMochila":
                 updateMochila();
                 break;
+
+            case "showProgress":
+                // Mostra o container
+                $(".progress-container").fadeIn(200);
+
+                // Inicializa a barra se ainda não existe
+                if (!progressBarInstance) {
+                    progressBarInstance = new ldBar("#progressBar");
+                }
+
+                // Reseta a barra para 0
+                progressBarInstance.set(0);
+
+                // Animação manual para sincronizar perfeitamente com o tempo do servidor
+                let duration = event.data.time;
+                let startTime = Date.now();
+                let interval = setInterval(() => {
+                    let elapsed = Date.now() - startTime;
+                    let progress = (elapsed / duration) * 100;
+
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        // Esconde a barra após completar
+                        $(".progress-container").fadeOut(500);
+                    }
+                    
+                    progressBarInstance.set(progress);
+                }, 16); // Atualiza a cada ~16ms (60fps)
+                break;    
 
             case "showVehicles":
                 requestVehicles();
@@ -217,7 +250,7 @@ const updateMochila = () => {
                 // durabilidade
 
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">
@@ -253,7 +286,7 @@ const updateMochila = () => {
 
                 // durabilidade
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-id="${v.id}" data-grid="${v.grid}" data-amount="${v.amount}" data-peso="${v.peso}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-id="${v.id}" data-grid="${v.grid}" data-amount="${v.amount}" data-peso="${v.peso}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">
@@ -605,7 +638,7 @@ const requestVehicles = () => {
 
                 // durabilidade
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">
@@ -638,7 +671,7 @@ const requestVehicles = () => {
 
                 // durabilidade
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-size: 55% !important; background-position: center; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-size: 55% !important; background-position: center; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">
@@ -888,7 +921,7 @@ const requestOrgChest = () => {
                 // durabilidade
 
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">
@@ -922,7 +955,7 @@ const requestOrgChest = () => {
                 // durabilidade
 
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">
@@ -1160,7 +1193,7 @@ const requestHouseChest = () => {
 
                 // durabilidade
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">
@@ -1194,7 +1227,7 @@ const requestHouseChest = () => {
                 // durabilidade
 
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">
@@ -1441,7 +1474,7 @@ const requestStore = () => {
                 // durabilidade
 
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">
@@ -1484,7 +1517,7 @@ const requestStore = () => {
                 // durabilidade
 
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount"> <b style="font-size: 1.2vh">${v.amount}</b></div>
                         <div class="item_weight"> <b style="font-size: 1.2vh; text-align: right">R$ ${format}</b></div>
@@ -1717,7 +1750,7 @@ const requestRevistar = () => {
                 // durabilidade
 
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-size: 55% !important; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">
@@ -1751,7 +1784,7 @@ const requestRevistar = () => {
                 // durabilidade
 
                 const item = `
-                <div class="item populated" style="background-image: url('http://104.234.65.183/inventario/${v.key}.png'); background-position: center; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
+                <div class="item populated" style="background-image: url('${imageURL}${v.key}.png'); background-position: center; background-repeat: no-repeat;" data-item-key="${v.key}" data-name-key="${v.name}" data-amount="${v.amount}" data-slot="${slot}">
                     <div class="top_item">
                         <div class="item_amount">x${formatarNumero(v.amount)}</div>
                         <div class="item_weight">

@@ -135,6 +135,7 @@ config.items = {
 	["cafe"] = { "Café", "beber", 0.5, nil, 50},
 	["cocacola"] = { "Coca Cola", "beber", 0.5, nil, 50},
 	["agua"] = { "Água", "beber", 0.5, nil, 50},
+	["garrafa_vazia"] = { "Garrafa Vazia", "none", 0.5, nil, nil},
 	["energetico"] = { "Energetico", "beber", 0.25, nil, 50},
 
 	-- ALCOLICAS FOME/SEDE
