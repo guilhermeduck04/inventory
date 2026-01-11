@@ -1,36 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap');
-
-/* ==================================================================================
-   1. ESTRUTURA ORIGINAL E RESPONSIVIDADE (INTACTAS)
-   Mantendo a lógica de VW/REM do seu código original para não quebrar o tamanho.
-   ================================================================================== */
-:root {
-	font-size: .9vw;
-    
-    /* VARIÁVEIS DO NOVO VISUAL (AZUL NEON) */
-    --primary: #0a91ff;
-    --primary-glow: rgba(10, 145, 255, 0.4);
-    --bg-glass: rgba(18, 22, 28, 0.95);
-    --slot-bg: rgba(255, 255, 255, 0.04);
-    --border-color: rgba(255, 255, 255, 0.08);
-    --radius: 0.3125rem; /* Equivalente ao seu .3125rem original */
-}
-
-@media (max-width: 78.13vw) {
-	:root {
-		font-size: 1.1vw;
-	}	
-}
-@media (min-width: 88.54vw) {
-	:root {
-		font-size: .9vw;
-	}
-	inventoryActions {
-		width: 5rem;
-		min-width: 5rem;
-	}
-}
-
 * {
 	margin: 0;
 	border: 0;
@@ -42,7 +9,8 @@
 	font-family: 'Montserrat', sans-serif;
 }
 
-html, body {
+html,
+body {
 	margin: 0;
 	padding: 0;
 	width: 100%;
@@ -51,38 +19,37 @@ html, body {
 	background-color: transparent;
 }
 
+/* O body fica visível para mostrar as Notificações */
 body {
-    display: block; /* IMPORTANTE: Tem que ser block, não none */
-    background-color: transparent; /* Fundo transparente */
-    overflow: hidden;
-    width: 100vw;
-    height: 100vh;
+	display: block; 
 }
 
+/* Essa classe serve APENAS para o JS esconder/mostrar o inventário */
 .inventory {
-    display: none; /* Adicione isso se não tiver */
+    display: none; 
 }
 
-.progress-container {
-    position: absolute;
-    bottom: 0%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 150px;
-    height: 150px;
-    z-index: 9999;
-    pointer-events: none; /* Permite clicar através da barra */
+:root {
+	font-size: .9vw;
 }
 
-.ldBar-label {
-    color: #fff;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+@media (max-width: 78.13vw) {
+	:root {
+		font-size: 1.1vw;
+	}	
+}
+@media (min-width: 88.54vw) {
+	:root {
+		font-size: .9vw;
+	}
+
+	inventoryActions {
+		width: 5rem;
+		min-width: 5rem;
+	}
 }
 
-/* Centralização do Main */
+/* O MAIN Original (Responsável pelo fundo e alinhamento) */
 main {
 	position: absolute;
 	top: 0;
@@ -94,26 +61,27 @@ main {
 	overflow: hidden;
 	align-items: center;
 	justify-content: center;
-    /* Fundo escurecido moderno */
-    background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(0,0,0,0.6) 100%);
+    /* Se a classe .inventory for adicionada aqui pelo JS, o display vira flex/none, 
+       mas o estilo visual permanece o do main */
 }
 
-/* ==================================================================================
-   2. INVENTÁRIO (CONTAINER)
-   ================================================================================== */
+main::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: -1;
+	background-color: rgba(0, 0, 0, 0.185);
+	box-shadow: 0vw 0.26vw 1.04vw rgba(10, 145, 255);
+}
+
 inventory {
 	position: relative;
-	width: auto; /* CORREÇÃO: Deixa a caixa crescer para caber tudo */
+	width: 38.75rem;
 	display: flex;
 	flex-direction: column;
-    
-    /* Novo Visual */
-    background: var(--bg-glass);
-    border: 1px solid var(--border-color);
-    border-radius: 0.75rem;
-	padding: 1.5rem; /* O padding que estava cortando o slot agora será somado */
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-    backdrop-filter: transparent(10px);
 }
 
 inventory header {
@@ -122,322 +90,158 @@ inventory header {
 	height: 6.25rem;
 	color: #fff;
 	display: flex;
-	padding: 0 1rem; /* Ajustado padding */
-    margin-bottom: 0.5rem;
+	padding: 0 3.125rem;
+	border-radius: .4375rem;
+	padding-left: 1.875rem;
 	align-items: center;
-	justify-content: space-between;
-    
-    /* Visual Limpo */
-	background: transparent;
-    border-bottom: 2px solid var(--slot-bg);
-}
-
-/* Títulos */
-inventory header .title {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-inventory header .title h1 {
-	font-size: 1.4rem;
-    font-weight: 800;
 	text-transform: uppercase;
-    line-height: 1.2;
-    color: #fff;
+	justify-content: space-between;
+	background: rgba(15, 15, 15, 0.384);
 }
 
-inventory header .title h1 span {
-	font-weight: 800;
-	color: var(--primary);
-	text-shadow: 0 0 15px var(--primary-glow);
-}
+inventory header .title { font-size: .625rem; line-height: 20px; }
+inventory header .title span { font-weight: 300; color: #fefefe; text-shadow: 0vw 0.26vw 1.04vw #ffffff; }
+inventory header small { opacity: .5; letter-spacing: .0625rem; }
+inventory header .weight { position: relative; top: -0.3125rem; width: 7.5rem; height: 2.8125rem; white-space: nowrap; }
+inventory header .weight h2 { position: absolute; opacity: 0.5; right: 0; bottom: 10; font-size: 1.5rem; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(255, 255, 255, 0.514); }
+inventory header .weight span { position: absolute; right: 0; bottom: 0; opacity: .7; font-size: 1.25rem; font-weight: 550; letter-spacing: .0625rem; }
+inventory header::before { content: ''; position: absolute; top: 50%; left: -0.0625rem; width: .1875rem; height: 70%; border-radius: 1.875rem; background-color: #01b7fff5; transform: translate(0, -50%); box-shadow: 0vw 0.26vw 1.04vw #01b7fff5; }
+header ::before { z-index: 1000 !important; }
 
-inventory header small {
-	opacity: 0.6;
-	letter-spacing: .0625rem;
-    font-size: 0.65rem;
-    color: #ccc;
-}
-
-inventory header .title h3 {
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #fff !important; /* Corrige o texto preto */
-}
-/* Cores do dinheiro */
-.banco { color: #66bb6a !important; font-weight: 700; }
-.carteira { color: #66bb6a !important; font-weight: 700; }
-
-/* Peso */
-inventory header .weight {
-	position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: center;
+inventory .item, .ui-draggable {
 	width: 7.5rem;
-	height: 2.8125rem;
-	white-space: nowrap;
+	height: 9.375rem;
+	display: flex;
+	padding-top: .625rem;
+	border-radius: .3125rem;
+	align-items: center;
+	flex-direction: column;
+	transition: background .2s;
+	justify-content: space-between;
+	z-index: 999999999999999999999999 !important;
+	background: rgba(15, 15, 15, 0.253);
 }
 
-inventory header .weight h2 { display: none; } /* Remove título antigo */
-
-.weight_info {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 0.3rem;
-    position: relative !important; /* Sobrescreve original */
-    right: auto !important; bottom: auto !important; /* Reseta posição absoluta antiga */
-}
-
-/* SVG Peso */
-.weightProgress {
-    transform: scale(0.9);
-}
-.weightProgress circle.outer { stroke: rgba(255,255,255,0.05); }
-.weightProgress circle.progress { stroke: var(--primary); filter: drop-shadow(0 0 5px var(--primary)); }
-
-/* Níveis */
-.nivel {
-    margin-top: 2rem; /* Afasta um pouco */
-    width: 100%;
-    text-align: right;
-}
-.bars { display: flex; justify-content: flex-end; gap: 3px; }
-.bar { width: 1.5rem; height: 0.25rem; background: rgba(255,255,255,0.1); border-radius: 2px; }
-.bar.on { background: var(--primary); box-shadow: 0 0 5px var(--primary); }
-.nivel b { font-size: 0.5rem; opacity: 0.5; color: #fff; }
-
-/* Remove a linha azul lateral antiga */
-inventory header::before { display: none; }
-
-
-/* ==================================================================================
-   3. GRID E ITENS (A PARTE CRÍTICA DO DRAG & DROP)
-   Aqui mantemos as dimensões EXATAS do original.
-   ================================================================================== */
 inventory section {
 	display: grid;
 	grid-gap: .3125rem;
-	overflow-y: auto;
-    overflow-x: hidden;
+	overflow: auto;
 	margin-top: .3125rem;
 	max-height: 28.75rem;
-    /* Usa as mesmas medidas do original */
 	grid-template-columns: repeat(5, 7.5rem);
-    padding-right: 5px;
 }
 
-/* Scrollbar */
-inventory section::-webkit-scrollbar { width: 4px; }
-inventory section::-webkit-scrollbar-track { background: transparent; }
-inventory section::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
-
-/* O ITEM EM SI */
-inventory section .item,
-.ui-draggable {
-    /* Dimensões ORIGINAIS travadas para não crescer */
-	width: 7.5rem; 
+inventory section .item, .ui-draggable {
+    width: 7.5rem;
 	height: 9.375rem;
-    
 	display: flex;
-    flex-direction: column;
-	align-items: center;
-	justify-content: center;
-    
-    /* Estilo Moderno */
-	border-radius: var(--radius);
-	transition: background .2s, border-color .2s;
-	background: var(--slot-bg);
-	border: 1px solid var(--border-color);
-    position: relative;
-}
-
-/* Hover e Seleção */
-inventory section .item:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: var(--primary);
-    box-shadow: 0 0 15px rgba(10, 145, 255, 0.15);
-}
-
-.hoverControl {
-	background: rgba(255, 255, 255, 0.15) !important;
-    border: 1px dashed var(--primary) !important;
-}
-
-/* Item Povoado (Imagem) */
-inventory section .populated {
-	background-size: 55% !important; /* Tamanho da imagem */
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-/* Topo do Item (Qtd e Peso) */
-.top_item {
-    position: absolute;
-    top: 0.5rem;
-    width: 100%;
-    padding: 0 0.5rem;
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.7);
-    z-index: 2;
-    pointer-events: none; /* Mouse ignora o texto */
-}
-
-/* Nome do Item */
-.item_name {
-	color: #fff;
-	width: 100%;
-	padding: .4375rem;
-	font-size: .6rem;
-	font-weight: 600;
-	text-align: center;
-    text-transform: uppercase;
-    
-    position: absolute;
-    bottom: 0;
-	border-radius: 0 0 var(--radius) var(--radius);
-	background: rgba(0, 0, 0, 0.6);
-    
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-    pointer-events: none; /* Mouse ignora o nome */
-}
-
-/* Durabilidade */
-.durability {
-    position: absolute;
-    bottom: 1.8rem;
-    width: 90%;
-    height: 3px;
-    background: #4caf50;
-    border-radius: 2px;
-    margin: 0 !important; /* Reseta margem original */
-    right: 5% !important; /* Centraliza */
-}
-
-/* ==================================================================================
-   4. AÇÕES CENTRAIS
-   ================================================================================== */
-inventoryActions {
-    z-index: 99;
-	padding: 1rem;
-    width: 9rem; /* Mais largo que original para caber botões bonitos */
-    min-width: 9rem;
-	display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    justify-content: center;
-	align-items: center;
+	padding-top: .625rem;
 	border-radius: .3125rem;
-	background: transparent;
-    border: none;
+	align-items: center;
+	flex-direction: column;
+	transition: background .2s;
+	justify-content: space-between;
+	background: rgba(15, 15, 15, .5);
+	background-size: 50%;
 }
 
-inventoryActions input {
-	width: 100%;
-	padding: 0.8rem;
-	outline: none;
-	color: #fff;
-	border-radius: var(--radius);
-	text-align: center;
-	background: var(--bg-glass);
-    border: 1px solid var(--border-color);
-	font-size: 1rem;
-    font-weight: 700;
-}
-inventoryActions input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+.invLeft > .item:nth-child(1){ background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='145px' width='115px'><text x='38' y='100' font-size='75' fill='gray' opacity='.5' font-family='Roboto, Arial, Helvetica, sans-serif'>1</text></svg>"); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; }
+.invLeft > .item:nth-child(2){ background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='145px' width='115px'><text x='38' y='100' font-size='75' fill='gray' opacity='.5' font-family='Roboto, Arial, Helvetica, sans-serif'>2</text></svg>"); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; }
+.invLeft > .item:nth-child(3){ background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='145px' width='115px'><text x='38' y='100' font-size='75' fill='gray' opacity='.5' font-family='Roboto, Arial, Helvetica, sans-serif'>3</text></svg>"); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; }
+.invLeft > .item:nth-child(4){ background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='145px' width='115px'><text x='38' y='100' font-size='75' fill='gray' opacity='.5' font-family='Roboto, Arial, Helvetica, sans-serif'>4</text></svg>"); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; }
+.invLeft > .item:nth-child(5){ background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='145px' width='115px'><text x='38' y='100' font-size='75' fill='gray' opacity='.5' font-family='Roboto, Arial, Helvetica, sans-serif'>5</text></svg>"); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; }
 
-inventoryActions button {
-	width: 100%;
-	color: #fff;
-	font-size: .75rem;
-	font-weight: 700;
-	padding: 0.9rem;
-	border-radius: var(--radius);
-	letter-spacing: .0625rem;
-	text-transform: uppercase;
-    cursor: pointer;
-    transition: 0.2s;
-    border: none;
-    box-shadow: none;
-    margin: 0;
-}
+inventory section .item img, .ui-draggable img { max-width: 75%; pointer-events: none; }
+inventory section .item .top, .ui-draggable .top { color: #fff; position: relative; justify-content: center; width: 100%; font-size: .5rem; display: flex; letter-spacing: .0625rem; align-items: center; text-transform: uppercase; }
+inventory section .item .top b, .ui-draggable .top b { color: #01b7fff5; }
+inventory section .item .infoItem, .ui-draggable .infoItem { width: 100%; }
+inventory section .item .name-item, .ui-draggable .name-item { color: #fff; width: 100%; padding: .4375rem; font-size: .5rem; font-weight: 500; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; letter-spacing: .0625rem; text-transform: uppercase; border-radius: 0rem 0rem .3125rem .3125rem; background: rgba(15, 15, 15, 0.301); }
+inventory section .item .bar, .ui-draggable .bar { width: 100%; height: .1875rem; overflow: hidden; position: relative; }
+inventory section .populated { background: rgba(15, 15, 15, 0.219); background-size: 86% !important; position: relative; }
+inventory .populated:hover { background: rgba(15, 15, 15, .90); }
+.ui-tooltip { position: absolute; pointer-events: none; }
+.ui-helper-hidden-accessible { display: none; }
+.tooltip { color: #fff; display: flex; border-radius: .375rem; flex-direction: column; padding: .625rem .3125rem .625rem .625rem; background: rgba(15, 15, 15, 0.39); box-shadow: 0rem .25rem .25rem rgba(0, 0, 0, 0.25); }
+.tooltip .tooltip-title { display: flex; font-size: .625rem; font-weight: 600; margin-bottom: .3125rem; align-items: center; text-transform: uppercase; }
+.tooltip .tooltip-title .mark { padding: .1875rem .3125rem; border-radius: .125rem; letter-spacing: .0313rem; margin-right: .625rem; text-transform: uppercase; background-color: #01b7fff5; box-shadow: 0vw 0.26vw 1.04vw #01b7fff5; }
+.tooltip p { font-size: .625rem; width: 15.625rem; opacity: .6; letter-spacing: .0313rem; }
+.tooltip .info-item { margin-top: .3125rem; display: flex; font-size: .625rem; align-items: center; }
+.tooltip .info-item .info { display: flex; color: #fff; font-size: .5rem; padding: .125rem .3125rem; border-radius: .125rem; margin-right: .3125rem; align-items: center; letter-spacing: .0625rem; text-transform: uppercase; background-color: rgb(51, 51, 51); }
+inventoryActions { z-index: 99999; padding: .3125rem; min-height: 5.73vw; width: 6rem; min-width: 6rem; display: flex; margin: 0 1.875rem; border-radius: .3125rem; align-items: center; flex-direction: column; text-transform: uppercase; background-color: rgba(15, 15, 15, 0.219); border: .0625rem solid rgba(255, 255, 255, 0.10); }
+inventoryActions button { width: 100%; display: flex; color: #fff; margin-top: .3125rem; font-size: .625rem; font-weight: 500; padding: .625rem; border-radius: .125rem; align-items: center; letter-spacing: .0625rem; justify-content: center; text-transform: uppercase; box-shadow: 0vw 0.06vw .24vw #01b7fff5; background-color: #01b7fff5; }
+inventoryActions input { width: 100%; padding: .3125rem; outline: none; color: #fff; border-radius: .125rem; text-align: center; background: #0606063d; font-size: .875rem; }
+.itemPrice { padding: .3125rem; position: absolute; right: .625rem; top: 0rem; border-radius: .1875rem; background-color: #01b7fff5; box-shadow: 0vw 0.26vw 1.04vw #01b7fff5; }
+.hoverControl { background: rgba(15, 15, 15, 0.178) !important; }
+.hoverControlBtn { background-color: #01b7fff5; box-shadow: 0vw 0.26vw 1.04vw #01b7fff5; }
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+::-webkit-scrollbar { width: 0; }
+.item { position: relative; width: 6.85rem; height: 7.5rem; background: rgba(17, 17, 17, 0.219); border-radius: .375rem; padding-bottom: .625rem; background-size: 80%; background-repeat: no-repeat; background-position: center; margin: 0rem .1125rem; z-index: 99999 }
+.item .imgSlot { position: absolute; top: 43%; left: 50%; width: 80%; margin: 0rem .3125rem; height: 80%; z-index: 101; background-size: cover; background-position: center; transform: translate(-50%,-50%); }
+.item small { position: absolute; top: .4375rem; right: .4375rem; margin: 0rem .3125rem; color: #fff; font-size: .625rem; letter-spacing: .0313rem; text-transform: uppercase; }
+.item span { opacity: .5; margin: 0rem .3125rem; font-size: .5rem; }
+.item p { position: absolute; left: 50%; bottom: 0; width: 100%; color: #fff; font-size: .5rem; padding: .3125rem; overflow: hidden; margin: 0rem .3125rem; text-align: center; white-space: nowrap; letter-spacing: .0313rem; text-overflow: ellipsis; text-transform: uppercase; transform: translate(-50%,0); background-color: rgba(17, 17, 17, 0.212); }
+.item::before { content: attr(data-number); position: absolute; top: 43%; left: 50%; margin: 0rem .3125rem; opacity: .3; color: rgba(0, 0, 0, 0.301); font-size: 3.75rem; font-weight: 600; transform: translate(-50%,-50%); }
+.item::after { content: ''; position: absolute; top: -0.0625rem; left: 45%; width: 70%; margin: 0rem .3125rem; height: .125rem; border-radius: 1.875rem; background-color: #01b7fff5; transform: translate(-50%,0); }
+.hotkey { width: 71vh; height: 8vh; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; position: relative; bottom: 4vh; display: none; }
+.list_keybar { width: 100%; display: flex; justify-content: center; flex-wrap: wrap; }
+.list_keybar .item { width: 11.55vh; height: 14vh; margin: 0.5%; background: rgba(255, 255, 255, 0.2); }
+.button:hover { transform: scale(1.05); }
+::-webkit-scrollbar { display: none; }
+.item:hover { transform: scale(1.035); }
 
-inventoryActions button.use { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
-inventoryActions button.send { background: linear-gradient(135deg, #000428 0%, #004e92 100%); }
+/* Importante: Mantemos o display:none global para não afetar outros loading-bars se houver */
+.ldBar-label { display: none; }
 
-inventoryActions button:hover { transform: scale(1.05); filter: brightness(1.2); }
-.select_hover { transform: scale(1.1); box-shadow: 0 0 20px var(--primary); }
+.nivel { width: 100%; height: 3vh; margin-top: 5vh; }
+.bars { width: 100%; display: flex; justify-content: space-between; }
+.bar { width: 4vh; height: 0.3vh; background: #ffffff80; }
+.nivel b { display: flex; overflow: hidden; align-items: center; justify-content: center; font-size: 0.52vw; opacity: 0.6; }
+.item_amount, .item_weight { font-size: 1.0vh !important; }
+.item_name { font-size: 1.4vh !important; }
+.item_amount { margin-left: 0.6vh; position: absolute; right: .5vw; top: .5vw; }
+.item_weight { margin-right: 0.6vh; position: absolute; left: .5vw; top: .5vw; }
+.on { background-color: #fff; }
+.select_hover { transform: scale(1.05); }
+.use, .send, .drop { display: flex !important; align-items: center !important; justify-content: center !important; }
+.item:hover { filter: brightness(0.9); }
+.weightProgress { position: absolute; right: -1.0625rem; top: -0.375rem; transform: scaleX(-1); }
+.outer { -webkit-transform: rotate(150deg) scale(1.2); -ms-transform: rotate(150deg) scale(1.2); transform: rotate(150deg) scale(1.2); -webkit-transform-origin: 50% 50%; -ms-transform-origin: 50% 50%; transform-origin: 50% 50%; }
+.progress { -webkit-transition: 0.35s stroke-dashoffset; -o-transition: 0.35s stroke-dashoffset; transition: 0.35s stroke-dashoffset; -webkit-transform: rotate(150deg) scale(1.2); -ms-transform: rotate(150deg) scale(1.2); transform: rotate(150deg) scale(1.2); -webkit-transform-origin: 50% 50%; -ms-transform-origin: 50% 50%; transform-origin: 50% 50%; box-shadow: 0vw 0.26vw 0.52vw #01b7fff5; }
+.item .durability { position: relative; height: 3px; margin-top: auto; background: #2e6e4c; margin-left: 4.6px; max-width: 100%; }
 
-/* ==================================================================================
-   5. CORREÇÃO DEFINITIVA DO DRAG & DROP
-   Isso garante que o item arraste corretamente sem bugar o clique.
-   ================================================================================== */
-.ui-draggable-dragging {
-    /* Força as dimensões ORIGINAIS exatas no clone */
-    width: 7.5rem !important;
-    height: 9.375rem !important;
-    
-    /* Garante que fique no topo */
-    z-index: 9999999 !important;
-    position: fixed !important;
-    
-    /* Visual do clone */
-    background: rgba(18, 22, 28, 0.95) !important;
-    border: 1px solid var(--primary) !important;
-    border-radius: var(--radius) !important;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 15px var(--primary-glow) !important;
-    
-    /* CRUCIAL: Permite que o mouse 'atravesse' o clone e detecte o slot embaixo */
-    pointer-events: none !important; 
-    
-    /* Ajuste de escala */
-    transform: scale(1.02) !important;
-}
+/* --- NOVOS ESTILOS --- */
 
-/* Ocultar elementos antigos desnecessários */
-.hotkey, .list_keybar { display: none; }
-
-/* Container que segura as notificações */
+/* 1. NOTIFICAÇÃO (Esquerda, meio) */
 #notify-container {
     position: absolute;
-    bottom: 20%;
-    right: 2%;
+    top: 50%;
+    left: 2%;
+    transform: translateY(-50%);
     width: 250px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    z-index: 9999;
-    pointer-events: none; /* Para clicar através dele */
+    z-index: 999999;
+    pointer-events: none; 
 }
 
-/* O Card do Item */
 .item-notify {
     display: flex;
     align-items: center;
-    background: rgba(15, 15, 15, 0.9);
+    background: rgba(15, 15, 15, 0.95);
     border-left: 4px solid #fff;
     border-radius: 5px;
     padding: 10px;
     color: #fff;
     font-family: 'Montserrat', sans-serif;
-    animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 3.5s forwards;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    animation: slideInLeft 0.5s ease-out, fadeOut 0.5s ease-in 3.5s forwards;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
 }
 
-/* Cores da borda dependendo da ação */
-.item-notify.add { border-color: #00ff88; } /* Verde para adicionar */
-.item-notify.rem { border-color: #ff4d4d; } /* Vermelho para remover */
+.item-notify.add { border-color: #00ff88; } 
+.item-notify.rem { border-color: #ff4d4d; } 
 
-/* Imagem do item */
 .item-notify img {
     width: 45px;
     height: 45px;
@@ -445,7 +249,6 @@ inventoryActions button:hover { transform: scale(1.05); filter: brightness(1.2);
     margin-right: 15px;
 }
 
-/* Textos */
 .notify-info {
     display: flex;
     flex-direction: column;
@@ -462,13 +265,35 @@ inventoryActions button:hover { transform: scale(1.05); filter: brightness(1.2);
     opacity: 0.8;
 }
 
-/* Animações */
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
+@keyframes slideInLeft {
+    from { transform: translateX(-120%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes fadeOut {
     from { opacity: 1; }
     to { opacity: 0; }
+}
+
+/* 2. PROGRESS BAR (EM BAIXO - BOTTOM 2%) */
+.progress-container {
+    position: absolute;
+    bottom: 2%; /* Bem em baixo como pediu */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 150px;
+    z-index: 999999;
+    pointer-events: none;
+}
+
+/* Override específico para essa barra mostrar o texto */
+.progress-container .ldBar-label {
+    display: block !important;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+    /* Removi o margin-top: -30px que estragou antes */
 }

@@ -1080,13 +1080,16 @@ function src.checkAtm(Coords)
 	return BombZone,AtmSelected
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- NOTIFY ITEM (GLOBAL)
+-----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("inventory:NotifyItem")
 AddEventHandler("inventory:NotifyItem",function(item,name,amount,mode)
     SendNUIMessage({
         action = "itemNotify",
-        item = item,    -- ID do item para a imagem (ex: garrafa_vazia)
-        name = name,    -- Nome bonitinho (ex: Garrafa Vazia)
+        item = item,
+        name = name,
         amount = amount,
-        mode = mode     -- "adicionado" ou "removido"
+        mode = mode
     })
 end)
