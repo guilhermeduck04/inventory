@@ -714,6 +714,7 @@ if itemType == "beber" then
             end
         end
     end
+	updateHotbar(source)
 end
 
 function src.droparItem(slot,amount)
@@ -756,6 +757,7 @@ function src.droparItem(slot,amount)
 			TriggerClientEvent( "Notify", source, "negado", "Aguarde <b>" .. time .. " segundo(s)</b> para utilizar isso novamente." )
 		end
 	end
+	updateHotbar(source)
 end
 
 function src.pegarItem(id,slot,amount)
@@ -809,6 +811,7 @@ function src.pegarItem(id,slot,amount)
 			TriggerClientEvent( "Notify", source, "negado", "Aguarde <b>" .. time .. " segundo(s)</b> para utilizar isso novamente." )
 		end
 	end
+	updateHotbar(source)
 end
 
 function src.sendItem(item,slot,amount)
@@ -888,6 +891,7 @@ function src.updateSlot(itemName, slot, target, targetName, targetamount, amount
 			end
 		end
 	end
+	updateHotbar(source)
 end
 
 function src.checkPermission(permission)
@@ -2100,4 +2104,38 @@ async(function()
 	save_org_chest()
 	save_vehicles_chest()
 	save_house_chest()
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- UPDATE HOTBAR (Adicione isso no final do arquivo)
+-----------------------------------------------------------------------------------------------------------------------------------------
+function updateHotbar(source)
+    local user_id = vRP.getUserId(source)
+    if user_id then
+        local inv = vRP.getInventory(user_id)
+        if inv then
+            local items = {}
+            for k,v in pairs(inv) do
+                -- Verifica se o item está nos slots 1 a 5
+                if parseInt(k) >= 1 and parseInt(k) <= 5 then
+                    if allItems[v.item] then
+                        items[k] = {
+                            item = v.item,
+                            amount = parseInt(v.amount)
+                        }
+                    end
+                end
+            end
+            -- Envia para o HTML
+            TriggerClientEvent("inventory:UpdateHotbar", source, items)
+        end
+    end
+end
+
+-- Atualiza a hotbar assim que o jogador entra na cidade
+AddEventHandler("vRP:playerSpawn",function(user_id,source,first_spawn)
+    if first_spawn then
+        Wait(2000)
+        updateHotbar(source)
+    end
 end)
