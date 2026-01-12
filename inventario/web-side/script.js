@@ -118,6 +118,44 @@ $(document).ready(function () {
             }, 4000);
         break;
 
+        case "showHotbar":
+            // Alterna a classe 'active' (se tem tira, se não tem põe)
+            let $hotbar = $(".hotbar-container");
+            if ($hotbar.hasClass("active")) {
+                $hotbar.removeClass("active");
+            } else {
+                $hotbar.addClass("active");
+                // Opcional: Esconder automaticamente após 5 segundos
+                /* setTimeout(() => {
+                    $hotbar.removeClass("active");
+                }, 5000); 
+                */
+            }
+        break;
+
+        case "updateHotbar":
+            // Aqui vamos preencher os slots 1-5 com as imagens
+            // Supondo que event.data.items seja um objeto { "1": { item: "ak47", amount: 1 }, ... }
+            $(".hotbar-slot").css("background-image", "none").html(""); // Limpa tudo
+
+            // Recoloca os números (já que limpamos com .html(""))
+            $(".hotbar-slot").each(function() {
+                $(this).text($(this).data("slot")); 
+            });
+
+            if (event.data.items) {
+                $.each(event.data.items, function(slot, data) {
+                    if (slot <= 5) { // Só slots 1 a 5
+                        let $slot = $(`.hotbar-slot[data-slot='${slot}']`);
+                        // Imagem
+                        $slot.css("background-image", `url('http://104.234.65.183/inventario/${data.item}.png')`);
+                        // Quantidade (se quiser mostrar)
+                        $slot.append(`<div class="hotbar-amount">${data.amount}x</div>`);
+                    }
+                });
+            }
+        break;
+
             case "showVehicles":
                 requestVehicles();
                 $(".use").css("display", "none")

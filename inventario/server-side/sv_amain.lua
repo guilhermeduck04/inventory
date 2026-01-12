@@ -376,15 +376,17 @@ function src.useItem(slot, amount)
                                 TriggerClientEvent("zo_install_mod_xenon", source)
 
 							elseif item == "nitro" then
-                                if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
-
-									local Nitro = GlobalState["Nitro"]
-									Nitro[Plate] = 2000
-									GlobalState:set("Nitro", Nitro, true)
-
-									TriggerClientEvent("progress", source, 2000)
-                                end
-
+											if not Plate then
+												TriggerClientEvent("Notify",source,"negado","Veículo não detectado.")
+											else
+												if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
+													local Nitro = GlobalState["Nitro"]
+													Nitro[Plate] = 2000
+													GlobalState:set("Nitro", Nitro, true)
+									
+													TriggerClientEvent("progress", source, 2000)
+												end
+											end
                             elseif item == "maconha" or item == "cocaina" or item == "lsd" or item == "heroina" or item == "metanfetamina" or item == "lancaperfume" or item == "balinha" then
                                 if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
                                     vRPclient._playAnim( source, true, {{"mp_player_int_uppersmoke", "mp_player_int_smoke"}}, true )

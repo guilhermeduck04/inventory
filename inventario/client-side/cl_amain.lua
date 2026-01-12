@@ -126,6 +126,42 @@ RegisterCommand("revistar",function(source,args)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- DESATIVAR RODA DE ARMAS E CONTROLE DA HOTBAR
+-----------------------------------------------------------------------------------------------------------------------------------------
+CreateThread(function()
+    while true do
+        local idle = 1000
+        local ped = PlayerPedId()
+        
+        -- Bloqueia a tecla TAB (Input 37) para não abrir a roda original
+        DisableControlAction(0, 37, true) 
+        
+        -- Bloqueia troca de arma pelo Scroll do Mouse (opcional, mas recomendado)
+        DisableControlAction(0, 12, true) -- Weapon Wheel Up
+        DisableControlAction(0, 13, true) -- Weapon Wheel Down
+        DisableControlAction(0, 14, true) -- Weapon Wheel Next
+        DisableControlAction(0, 15, true) -- Weapon Wheel Prev
+        
+        -- Se apertar TAB, envia comando para o HTML mostrar a barra
+        if IsDisabledControlJustPressed(0, 37) then
+            SendNUIMessage({ action = "showHotbar" })
+            idle = 5
+        end
+        
+        -- Para economizar processamento, o loop roda mais lento quando não aperta nada
+        Wait(idle)
+    end
+end)
+
+RegisterNetEvent("inventory:UpdateHotbar")
+AddEventHandler("inventory:UpdateHotbar", function(items)
+    SendNUIMessage({
+        action = "updateHotbar",
+        items = items
+    })
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- PROGRESS
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("progress")

@@ -297,3 +297,57 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     text-shadow: 0 0 10px rgba(0,0,0,0.5);
     /* Removi o margin-top: -30px que estragou antes */
 }
+
+/* Container da Hotbar */
+.hotbar-container {
+    position: absolute;
+    bottom: -150px; /* Começa escondido abaixo da tela */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animação suave com 'pulo' */
+    z-index: 99999;
+}
+
+/* Quando estiver ativa (classe adicionada pelo JS) */
+.hotbar-container.active {
+    bottom: 20px; /* Sobe para aparecer */
+}
+
+/* Estilo de cada Slot */
+.hotbar-slot {
+    width: 80px;
+    height: 80px;
+    background-color: rgba(15, 15, 15, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Número do slot no canto */
+.hotbar-slot::before {
+    content: attr(data-slot);
+    position: absolute;
+    top: 5px;
+    left: 8px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: bold;
+}
+
+/* Quantidade do item */
+.hotbar-amount {
+    position: absolute;
+    bottom: 5px;
+    right: 8px;
+    font-size: 10px;
+    color: #fff;
+}
