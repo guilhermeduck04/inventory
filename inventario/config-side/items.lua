@@ -291,4 +291,49 @@ config.items = {
 	["WEAPON_AT_PI_FLSH"] = { "Lanterna Pistol", "equipar", 0.5, nil, nil},
 	["WEAPON_AT_PI_SUPP"] = { "Silenciador Pistol", "equipar", 0.5, nil, nil},
 	["WEAPON_AT_SR_SUPP"] = { "Silenciador Sniper", "equipar", 0.5, nil, nil},
+
+	-- CAIXAS DE ARMAS (SISTEMA DE UNBOXING)
+    
+    -- PISTOLAS
+    ["box_WEAPON_SNSPISTOL_MK2"] = { "Caixa de Fajuta", "usar", 1.0, nil, nil},
+    ["box_WEAPON_PISTOL_MK2"] = { "Caixa de Five-Seven", "usar", 1.0, nil, nil},
+    ["box_WEAPON_GUSENBERG"] = { "Caixa de Thompson", "usar", 1.0, nil, nil},
+    ["box_WEAPON_PISTOL50"] = { "Caixa de Desert Eagle", "usar", 1.0, nil, nil},
+    ["box_WEAPON_COMBATPISTOL"] = { "Caixa de Glock", "usar", 1.0, nil, nil},
+    ["box_WEAPON_COMBATPDW"] = { "Caixa de Combat Pdw", "usar", 1.0, nil, nil},
+    ["box_WEAPON_GLOCK18C"] = { "Caixa de Glock 18C", "usar", 1.0, nil, nil},
+    ["box_WEAPON_DE"] = { "Caixa de Desert Eagle", "usar", 1.0, nil, nil},
+    ["box_WEAPON_PISTOL"] = { "Caixa de Pistol", "usar", 1.0, nil, nil},
+    ["box_WEAPON_FNX45"] = { "Caixa de FNX45", "usar", 1.0, nil, nil},
+
+    -- SUBMETRALHADORA
+    ["box_WEAPON_MACHINEPISTOL"] = { "Caixa de Tec-9", "usar", 1.5, nil, nil},
+    ["box_WEAPON_SMG_MK2"] = { "Caixa de Smg MK2", "usar", 1.5, nil, nil},
+    ["box_WEAPON_SMG"] = { "Caixa de SMG", "usar", 1.5, nil, nil},
+    ["box_WEAPON_ASSAULTSMG"] = { "Caixa de MTAR", "usar", 1.5, nil, nil},
+    ["box_WEAPON_UZI"] = { "Caixa de Uzi", "usar", 1.5, nil, nil},
+
+    -- SHOTGUN
+    ["box_WEAPON_SAWNOFFSHOTGUN"] = { "Caixa de Shotgun", "usar", 2.0, nil, nil},
+    ["box_WEAPON_PUMPSHOTGUN_MK2"] = { "Caixa de Pump Shotgun", "usar", 2.0, nil, nil},
+
+    -- FUZIL
+    ["box_WEAPON_ASSAULTRIFLE"] = { "Caixa de AK 47", "usar", 2.5, nil, nil},
+    ["box_WEAPON_ASSAULTRIFLE_MK2"] = { "Caixa de AK MK2", "usar", 2.5, nil, nil},
+    ["box_WEAPON_SPECIALCARBINE"] = { "Caixa de Parafal", "usar", 2.5, nil, nil},
+    ["box_WEAPON_SPECIALCARBINE_MK2"] = { "Caixa de G3", "usar", 2.5, nil, nil},
+    ["box_WEAPON_DOUBLEACTION"] = { "Caixa de DOUBLEACTION", "usar", 2.5, nil, nil},
+    ["box_WEAPON_CARBINERIFLE"] = { "Caixa de M4", "usar", 2.5, nil, nil},
+    ["box_WEAPON_CARBINERIFLE_MK2"] = { "Caixa de M4 MK2", "usar", 2.5, nil, nil},
+    ["box_WEAPON_MUSKET"] = { "Caixa de Musket", "usar", 2.5, nil, nil},
+    ["box_WEAPON_AK47"] = { "Caixa de AK47", "usar", 2.5, nil, nil},
+    ["box_WEAPON_AR15"] = { "Caixa de AR15", "usar", 2.5, nil, nil},
+    ["box_WEAPON_M4"] = { "Caixa de M4", "usar", 2.5, nil, nil},
+    ["box_WEAPON_M70AB2"] = { "Caixa de M70AB2", "usar", 2.5, nil, nil},
+    ["box_WEAPON_M110"] = { "Caixa de M110", "usar", 2.5, nil, nil},
+    ["box_WEAPON_MK14"] = { "Caixa de MK14", "usar", 2.5, nil, nil},
+    ["box_WEAPON_SCARH"] = { "Caixa de SCAR-H", "usar", 2.5, nil, nil},
+
+    -- TAZER
+    ["box_WEAPON_STUNGUN"] = { "Caixa de Tazer", "usar", 1.0, nil, nil},
 }

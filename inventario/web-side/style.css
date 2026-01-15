@@ -9,8 +9,7 @@
 	font-family: 'Montserrat', sans-serif;
 }
 
-html,
-body {
+html, body {
 	margin: 0;
 	padding: 0;
 	width: 100%;
@@ -19,37 +18,17 @@ body {
 	background-color: transparent;
 }
 
-/* O body fica visível para mostrar as Notificações */
-body {
-	display: block; 
-}
+body { display: block; }
+.inventory { display: none; }
 
-/* Essa classe serve APENAS para o JS esconder/mostrar o inventário */
-.inventory {
-    display: none; 
-}
+:root { font-size: .9vw; }
 
-:root {
-	font-size: .9vw;
-}
-
-@media (max-width: 78.13vw) {
-	:root {
-		font-size: 1.1vw;
-	}	
-}
+@media (max-width: 78.13vw) { :root { font-size: 1.1vw; } }
 @media (min-width: 88.54vw) {
-	:root {
-		font-size: .9vw;
-	}
-
-	inventoryActions {
-		width: 5rem;
-		min-width: 5rem;
-	}
+	:root { font-size: .9vw; }
+	inventoryActions { width: 5rem; min-width: 5rem; }
 }
 
-/* O MAIN Original (Responsável pelo fundo e alinhamento) */
 main {
 	position: absolute;
 	top: 0;
@@ -61,8 +40,6 @@ main {
 	overflow: hidden;
 	align-items: center;
 	justify-content: center;
-    /* Se a classe .inventory for adicionada aqui pelo JS, o display vira flex/none, 
-       mas o estilo visual permanece o do main */
 }
 
 main::before {
@@ -108,6 +85,7 @@ inventory header .weight span { position: absolute; right: 0; bottom: 0; opacity
 inventory header::before { content: ''; position: absolute; top: 50%; left: -0.0625rem; width: .1875rem; height: 70%; border-radius: 1.875rem; background-color: #01b7fff5; transform: translate(0, -50%); box-shadow: 0vw 0.26vw 1.04vw #01b7fff5; }
 header ::before { z-index: 1000 !important; }
 
+/* --- CORREÇÃO DO Z-INDEX AQUI (Era 9999999...) --- */
 inventory .item, .ui-draggable {
 	width: 7.5rem;
 	height: 9.375rem;
@@ -118,7 +96,7 @@ inventory .item, .ui-draggable {
 	flex-direction: column;
 	transition: background .2s;
 	justify-content: space-between;
-	z-index: 999999999999999999999999 !important;
+	z-index: 10 !important; /* Baixei para 10 */
 	background: rgba(15, 15, 15, 0.253);
 }
 
@@ -176,7 +154,10 @@ inventoryActions input { width: 100%; padding: .3125rem; outline: none; color: #
 input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
 input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 ::-webkit-scrollbar { width: 0; }
-.item { position: relative; width: 6.85rem; height: 7.5rem; background: rgba(17, 17, 17, 0.219); border-radius: .375rem; padding-bottom: .625rem; background-size: 80%; background-repeat: no-repeat; background-position: center; margin: 0rem .1125rem; z-index: 99999 }
+
+/* Item Z-Index Corrigido para 10 */
+.item { position: relative; width: 6.85rem; height: 7.5rem; background: rgba(17, 17, 17, 0.219); border-radius: .375rem; padding-bottom: .625rem; background-size: 80%; background-repeat: no-repeat; background-position: center; margin: 0rem .1125rem; z-index: 10; }
+
 .item .imgSlot { position: absolute; top: 43%; left: 50%; width: 80%; margin: 0rem .3125rem; height: 80%; z-index: 101; background-size: cover; background-position: center; transform: translate(-50%,-50%); }
 .item small { position: absolute; top: .4375rem; right: .4375rem; margin: 0rem .3125rem; color: #fff; font-size: .625rem; letter-spacing: .0313rem; text-transform: uppercase; }
 .item span { opacity: .5; margin: 0rem .3125rem; font-size: .5rem; }
@@ -190,7 +171,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 ::-webkit-scrollbar { display: none; }
 .item:hover { transform: scale(1.035); }
 
-/* Importante: Mantemos o display:none global para não afetar outros loading-bars se houver */
 .ldBar-label { display: none; }
 
 .nivel { width: 100%; height: 3vh; margin-top: 5vh; }
@@ -210,9 +190,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .progress { -webkit-transition: 0.35s stroke-dashoffset; -o-transition: 0.35s stroke-dashoffset; transition: 0.35s stroke-dashoffset; -webkit-transform: rotate(150deg) scale(1.2); -ms-transform: rotate(150deg) scale(1.2); transform: rotate(150deg) scale(1.2); -webkit-transform-origin: 50% 50%; -ms-transform-origin: 50% 50%; transform-origin: 50% 50%; box-shadow: 0vw 0.26vw 0.52vw #01b7fff5; }
 .item .durability { position: relative; height: 3px; margin-top: auto; background: #2e6e4c; margin-left: 4.6px; max-width: 100%; }
 
-/* --- NOVOS ESTILOS --- */
-
-/* 1. NOTIFICAÇÃO (Esquerda, meio) */
+/* --- NOTIFICAÇÃO --- */
 #notify-container {
     position: absolute;
     top: 50%;
@@ -225,129 +203,45 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     z-index: 999999;
     pointer-events: none; 
 }
-
-.item-notify {
-    display: flex;
-    align-items: center;
-    background: rgba(15, 15, 15, 0.95);
-    border-left: 4px solid #fff;
-    border-radius: 5px;
-    padding: 10px;
-    color: #fff;
-    font-family: 'Montserrat', sans-serif;
-    animation: slideInLeft 0.5s ease-out, fadeOut 0.5s ease-in 3.5s forwards;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-}
-
+.item-notify { display: flex; align-items: center; background: rgba(15, 15, 15, 0.95); border-left: 4px solid #fff; border-radius: 5px; padding: 10px; color: #fff; font-family: 'Montserrat', sans-serif; animation: slideInLeft 0.5s ease-out, fadeOut 0.5s ease-in 3.5s forwards; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
 .item-notify.add { border-color: #00ff88; } 
 .item-notify.rem { border-color: #ff4d4d; } 
+.item-notify img { width: 45px; height: 45px; object-fit: contain; margin-right: 15px; }
+.notify-info { display: flex; flex-direction: column; }
+.notify-info span { font-weight: 700; font-size: 14px; text-transform: uppercase; }
+.notify-info small { font-size: 12px; opacity: 0.8; }
+@keyframes slideInLeft { from { transform: translateX(-120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
-.item-notify img {
-    width: 45px;
-    height: 45px;
-    object-fit: contain;
-    margin-right: 15px;
-}
+/* --- PROGRESS BAR --- */
+.progress-container { position: absolute; bottom: 2%; left: 50%; transform: translateX(-50%); width: 150px; height: 150px; z-index: 999999; pointer-events: none; }
+.progress-container .ldBar-label { display: block !important; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 700; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
 
-.notify-info {
-    display: flex;
-    flex-direction: column;
-}
+/* --- HOTBAR --- */
+.hotbar-container { position: absolute; bottom: -150px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 99999; }
+.hotbar-container.active { bottom: 20px; }
+.hotbar-slot { width: 80px; height: 80px; background-color: rgba(15, 15, 15, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 5px; display: flex; justify-content: center; align-items: center; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.5); background-size: 60%; background-repeat: no-repeat; background-position: center; }
+.hotbar-slot::before { content: attr(data-slot); position: absolute; top: 5px; left: 8px; font-size: 12px; color: rgba(255, 255, 255, 0.5); font-weight: bold; }
+.hotbar-amount { position: absolute; bottom: 5px; right: 8px; font-size: 10px; color: #fff; }
 
-.notify-info span {
-    font-weight: 700;
-    font-size: 14px;
-    text-transform: uppercase;
+/* --- MENU DE CONTEXTO --- */
+.context-menu {
+    display: none;
+    position: fixed; /* Fixed garante que fique na frente */
+    z-index: 9999999 !important; /* Maior que o 10 dos itens */
+    width: 180px;
+    background: rgba(15, 15, 20, 0.98);
+    border: 1px solid rgba(0, 255, 136, 0.4);
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 1);
+    padding: 5px 0;
+    pointer-events: all;
 }
-
-.notify-info small {
-    font-size: 12px;
-    opacity: 0.8;
+.context-option { padding: 10px 15px; color: #fff; font-family: 'Roboto', sans-serif; font-size: 12px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; }
+.context-option:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #00ff88;
+    cursor: pointer;
 }
-
-@keyframes slideInLeft {
-    from { transform: translateX(-120%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
-
-/* 2. PROGRESS BAR (EM BAIXO - BOTTOM 2%) */
-.progress-container {
-    position: absolute;
-    bottom: 2%; /* Bem em baixo como pediu */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 150px;
-    height: 150px;
-    z-index: 999999;
-    pointer-events: none;
-}
-
-/* Override específico para essa barra mostrar o texto */
-.progress-container .ldBar-label {
-    display: block !important;
-    color: #fff;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-shadow: 0 0 10px rgba(0,0,0,0.5);
-    /* Removi o margin-top: -30px que estragou antes */
-}
-
-/* Container da Hotbar */
-.hotbar-container {
-    position: absolute;
-    bottom: -150px; /* Começa escondido abaixo da tela */
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 10px;
-    transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animação suave com 'pulo' */
-    z-index: 99999;
-}
-
-/* Quando estiver ativa (classe adicionada pelo JS) */
-.hotbar-container.active {
-    bottom: 20px; /* Sobe para aparecer */
-}
-
-/* Estilo de cada Slot */
-.hotbar-slot {
-    width: 80px;
-    height: 80px;
-    background-color: rgba(15, 15, 15, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    background-size: 60%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-/* Número do slot no canto */
-.hotbar-slot::before {
-    content: attr(data-slot);
-    position: absolute;
-    top: 5px;
-    left: 8px;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
-    font-weight: bold;
-}
-
-/* Quantidade do item */
-.hotbar-amount {
-    position: absolute;
-    bottom: 5px;
-    right: 8px;
-    font-size: 10px;
-    color: #fff;
-}
+.context-separator { height: 1px; background: rgba(255, 255, 255, 0.1); margin: 5px 0; }
+.weapon-only { display: none; }

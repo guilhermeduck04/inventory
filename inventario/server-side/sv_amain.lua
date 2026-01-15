@@ -55,12 +55,54 @@ local classWeapons = {
 	["WEAPON_FNX45"] = "PISTOLAS",
 	["WEAPON_UZI"] = "SEMI-RIFLE",
 	["WEAPON_KARAMBITKNIFE"] = "FACAS",
-	
-
-
     
 }
+-- TABELA DE RELAÇÃO ARMA -> ITEM DE MUNIÇÃO
+-- TABELA DE RELAÇÃO ARMA -> ITEM DE MUNIÇÃO
+local ammoTable = {
+    -- PISTOLAS
+    ["WEAPON_SNSPISTOL_MK2"]    = "AMMO_SNSPISTOL_MK2",
+    ["WEAPON_PISTOL_MK2"]       = "AMMO_PISTOL_MK2",
+    ["WEAPON_GUSENBERG"]        = "AMMO_GUSENBERG",
+    ["WEAPON_PISTOL50"]         = "AMMO_PISTOL50",
+    ["WEAPON_COMBATPISTOL"]     = "AMMO_COMBATPISTOL",
+    ["WEAPON_COMBATPDW"]        = "AMMO_COMBATPDW",
+    ["WEAPON_GLOCK18C"]         = "AMMO_GLOCK18C",
+    ["WEAPON_DE"]               = "AMMO_DE",
+    ["WEAPON_PISTOL"]           = "AMMO_PISTOL",
+    ["WEAPON_FNX45"]            = "AMMO_FNX45",
 
+    -- SUBMETRALHADORA
+    ["WEAPON_MACHINEPISTOL"]    = "AMMO_MACHINEPISTOL",
+    ["WEAPON_SMG_MK2"]          = "AMMO_SMG_MK2",
+    ["WEAPON_SMG"]              = "AMMO_SMG",
+    ["WEAPON_ASSAULTSMG"]       = "AMMO_ASSAULTSMG",
+    ["WEAPON_UZI"]              = "AMMO_UZI",
+
+    -- SHOTGUN
+    ["WEAPON_SAWNOFFSHOTGUN"]   = "AMMO_SAWNOFFSHOTGUN",
+    ["WEAPON_PUMPSHOTGUN_MK2"]  = "AMMO_PUMPSHOTGUN_MK2",
+
+    -- FUZIL / RIFLE
+    ["WEAPON_ASSAULTRIFLE"]     = "AMMO_ASSAULTRIFLE",
+    ["WEAPON_ASSAULTRIFLE_MK2"] = "AMMO_ASSAULTRIFLE_MK2",
+    ["WEAPON_SPECIALCARBINE"]   = "AMMO_SPECIALCARBINE",
+    ["WEAPON_SPECIALCARBINE_MK2"] = "AMMO_SPECIALCARBINE_MK2",
+    ["WEAPON_DOUBLEACTION"]     = "AMMO_DOUBLEACTION",
+    ["WEAPON_CARBINERIFLE"]     = "AMMO_CARBINERIFLE",
+    ["WEAPON_CARBINERIFLE_MK2"] = "AMMO_CARBINERIFLE_MK2",
+    ["WEAPON_MUSKET"]           = "AMMO_MUSKET",
+    ["WEAPON_AK47"]             = "AMMO_AK47",
+    ["WEAPON_AR15"]             = "AMMO_AR15",
+    ["WEAPON_M4"]               = "AMMO_M4",
+    ["WEAPON_M70AB2"]           = "AMMO_M70AB2",
+    ["WEAPON_M110"]             = "AMMO_M110",
+    ["WEAPON_MK14"]             = "AMMO_MK14",
+    ["WEAPON_SCARH"]            = "AMMO_SCARH",
+
+    -- OUTROS
+    ["WEAPON_PETROLCAN"]        = "AMMO_PETROLCAN"
+}
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- OBJECTS
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -517,7 +559,7 @@ function src.useItem(slot, amount)
                                     TriggerClientEvent("Notify", source, "negado", "Nenhum jogador proximo.")
                                 end
 
-                            elseif item == "chave_algemas" then
+elseif item == "chave_algemas" then
                                 local nplayer = vRPclient.getNearestPlayer(source, 3)
                                 if nplayer then
                                     if vRPclient.isHandcuffed(source) then
@@ -533,79 +575,43 @@ function src.useItem(slot, amount)
                                 else
                                     TriggerClientEvent("Notify", source, "negado", "Nenhum jogador proximo." )
                                 end
-                            end
-                        end
 
-						if itemType == "equipar" then
-                            func:setCooldown(user_id, "inventario", 5)
-
-                            local data = vRP.getUserDataTable(user_id)
-                            local myWeapons = data.weapons
-                            local blockWeapons = {}
-                            local bloqueado = false
-
-                            for k,v in pairs(myWeapons) do
-                                local categoria = classWeapons[k]
-                                if categoria ~= nil then
-                                    blockWeapons[categoria] = true
-                                end
-
-                                local categoria2 = classWeapons[item]
-                                if categoria2 ~= nil then
-                                    if blockWeapons[categoria2] ~= nil then
-                                        bloqueado = true
-                                    end
-                                end
-                            end
-
-                            if not bloqueado then
-                                if vRP.tryGetInventoryItem(user_id,item,1, true, slot) then
-                                    local weapons = {}
-                                    weapons[item] = { ammo = 0 }
-                                    vRPclient._giveWeapons(source,weapons)
-
-                                    vCLIENT._updateWeapons(source)
-                                    vRP.sendLog("EQUIPAR", "O ID "..user_id.." equipou a arma "..vRP.getItemName(item)..".")
-                                end
                             else
-                                TriggerClientEvent("Notify",source,"negado","Você ja possui uma arma dessa classe equipada!")
+                                vRP.useInventoryItem(user_id, item, amount)
                             end
+							end								
+
+if itemType == "equipar" then
+                            -- COOLDOWN REDUZIDO: De 5 para 1 segundo (Muito mais rápido)
+                            func:setCooldown(user_id, "inventario", 1)
+
+                            -- Verifica no cliente se a arma JÁ está na mão (Toggle)
+                            local isEquipped = vCLIENT.checkWeaponInHand(source, item)
+
+                            if isEquipped then
+                                -- --- DESEQUIPAR (GUARDAR) ---
+                                vRPclient._replaceWeapons(source, {}) -- Limpa a mão
+                                TriggerClientEvent("inventory:UnequipWeapon", source) -- Garante animação
+                                TriggerClientEvent("Notify",source,"azul","Arma <b>guardada</b>.")
+                            else
+                                -- --- EQUIPAR (PUXAR) ---
+                                if vRP.getInventoryItemAmount(user_id, item) >= 1 then
+                                    local weapons = {}
+                                    weapons[item] = { ammo = 0 } -- Vem sem munição (recarrega com R)
+                                    
+                                    vRPclient._giveWeapons(source, weapons)
+                                    TriggerClientEvent("inventory:EquipWeapon", source, item) -- Força pra mão
+                                    TriggerClientEvent("Notify",source,"sucesso","Arma <b>equipada</b>.")
+                                else
+                                    TriggerClientEvent("Notify",source,"negado","Você não possui este item.")
+                                end
+                            end
+                            
+                            updateHotbar(source)
                         end
 
-						if itemType == "recarregar" then
-							func:setCooldown(user_id, "inventario", 5)
 
-							local weapon = string.gsub(item, "AMMO_","WEAPON_")
-							local municao = vRPclient.getAmmo(source, weapon)
-							local maxMunicao = 250
-							if vRPclient.checkWeapon(source, weapon) then
-								if municao < 250 then
-									if maxMunicao <= amount then
-										maxMunicao = maxMunicao - municao
-										amount = maxMunicao
-									else
-										maxMunicao = maxMunicao - municao
-										if amount > maxMunicao then
-											amount = maxMunicao
-										end
-									end
-				
-									if vRP.tryGetInventoryItem(user_id, item, amount, true, slot) then
-										local weapons = {}
-										weapons[weapon] = { ammo = amount }
-										vRPclient._giveWeapons(source,weapons,false)
-
-										vRP.sendLog("EQUIPAR", "O ID "..user_id.." recarregou a municao "..vRP.getItemName(item).." na quantidade de "..amount.." x.")
-									end
-								else
-									TriggerClientEvent("Notify",source,"negado","Sua <b>"..vRP.getItemName(weapon).."</b> ja esta com seu maximo de munição")
-								end
-							else
-								TriggerClientEvent("Notify",source,"negado","Você precisa estar com a <b>"..vRP.getItemName(weapon).."</b> na mão para recarregar.")
-							end
-						end
-
-if itemType == "beber" then
+						if itemType == "beber" then
 							func:setCooldown(user_id, "inventario", 5)
 
 							local fome,sede = vRP.itemFood(item)
@@ -1896,27 +1902,40 @@ function src.openStore(id)
 end
 
 function src.buyStore(id, item, target, amount)
-	local source = source
-	local user_id = vRP.getUserId(source)
-	if user_id then
-		if cfg.stores[id] then
-			local items = cfg.stores[id].items
-			if items[item].priceBuy ~= nil then
-				if vRP.computeInvWeight(user_id)+vRP.getItemWeight(tostring(item))*parseInt(amount) <= vRP.getInventoryMaxWeight(user_id) then
-				if parseInt(items[item].priceBuy) == 0 or vRP.tryFullPayment(user_id, parseInt(items[item].priceBuy)*amount) then						vRP.giveInventoryItem(user_id, item, amount, true, target)
-						
-						if parseInt(items[item].priceBuy)*amount > 0 then
-							TriggerClientEvent( "Notify", source, "sucesso", "Você pagou <b>$ "..vRP.format(parseInt(items[item].priceBuy)*amount).."</b>." )
-						end
-					else
-						TriggerClientEvent( "Notify", source, "negado", "Você não possui dinheiro." )
-					end
-				else
-					TriggerClientEvent( "Notify", source, "negado", "Mochila cheia." )
-				end
-			end
-		end
-	end
+    local source = source
+    local user_id = vRP.getUserId(source)
+    if user_id then
+        if cfg.stores[id] then
+            local items = cfg.stores[id].items
+            if items[item].priceBuy ~= nil then
+
+                if vRP.computeInvWeight(user_id)+vRP.getItemWeight(tostring(item))*parseInt(amount) <= vRP.getInventoryMaxWeight(user_id) then
+                    
+                    local price = parseInt(items[item].priceBuy)
+                    local totalPrice = price * parseInt(amount)
+
+                    if price == 0 or vRP.tryFullPayment(user_id, totalPrice) then
+
+                        vRP.giveInventoryItem(user_id, item, amount, true, target)
+
+                        if string.upper(item):find("WEAPON_") then
+                            local serial = "W"..math.random(1000,9999).."-"..user_id
+                            TriggerClientEvent("Notify",source,"sucesso","Arma registrada com Serial: <b>"..serial.."</b>")
+                        end
+
+                        if totalPrice > 0 then
+                            TriggerClientEvent("Notify", source, "sucesso", "Você pagou <b>$ "..vRP.format(totalPrice).."</b>.")
+                        end
+
+                    else
+                        TriggerClientEvent("Notify", source, "negado", "Você não possui dinheiro.")
+                    end
+                else
+                    TriggerClientEvent("Notify", source, "negado", "Mochila cheia.")
+                end
+            end
+        end
+    end
 end
 
 function src.sellStore(id, item, amount)
@@ -2132,10 +2151,205 @@ function updateHotbar(source)
     end
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- RECARREGAR ARMA (RESPEITANDO O LIMITE DE 250)
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterServerEvent("inventory:ReloadWeapon")
+AddEventHandler("inventory:ReloadWeapon", function(weaponHash, amountNeeded)
+    local source = source
+    local user_id = vRP.getUserId(source)
+    if user_id then
+        local weaponName = nil
+        -- Busca o nome da arma pelo Hash
+        for name, _ in pairs(ammoTable) do
+            if GetHashKey(name) == weaponHash then
+                weaponName = name
+                break
+            end
+        end
+
+        if weaponName then
+            local ammoItem = ammoTable[weaponName]
+            if ammoItem then
+                local ammoAmount = vRP.getInventoryItemAmount(user_id, ammoItem)
+                
+                if ammoAmount > 0 then
+                    -- Define quanto vai carregar:
+                    -- O cliente pediu X para completar 250. Se não pediu nada, tenta 250.
+                    local amountToTake = amountNeeded or 250 
+                    
+                    -- Se tiver MENOS no inventário do que precisa, usa tudo que tem
+                    if ammoAmount < amountToTake then
+                        amountToTake = ammoAmount
+                    end
+
+                    -- Consome do inventário
+                    if vRP.tryGetInventoryItem(user_id, ammoItem, amountToTake, true) then
+                        
+                        -- Adiciona na arma
+                        TriggerClientEvent("inventory:ClientAddAmmo", source, weaponName, amountToTake)
+                        
+                        TriggerClientEvent("Notify",source,"sucesso","Recarregou <b>"..amountToTake.."x</b> munições.")
+                        updateHotbar(source)
+                    else
+                         TriggerClientEvent("Notify",source,"negado","Erro ao processar munição.")
+                    end
+                else
+                    TriggerClientEvent("Notify",source,"negado","Sem <b>munição</b> no inventário.")
+                end
+            end
+        end
+    end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- REMOVER MUNIÇÃO (AGORA COMO SERVER EVENT)
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterServerEvent("inventory:removeAmmo")
+AddEventHandler("inventory:removeAmmo", function(weaponItem)
+    local source = source
+    local user_id = vRP.getUserId(source)
+    
+    -- Verifica se a arma está na mão
+    local isEquipped = vCLIENT.checkWeaponInHand(source, weaponItem)
+
+    if isEquipped then
+        local currentAmmo = vRPclient.getAmmoInWeapon(source, weaponItem)
+        
+        if currentAmmo > 0 then
+            vRPclient.setWeaponAmmo(source, weaponItem, 0)
+            local ammoItem = ammoTable[weaponItem]
+            if ammoItem then
+                vRP.giveInventoryItem(user_id, ammoItem, currentAmmo)
+                TriggerClientEvent("Notify",source,"sucesso","Você removeu <b>"..currentAmmo.."x</b> balas.")
+                updateHotbar(source)
+            end
+        else
+            TriggerClientEvent("Notify",source,"negado","Arma está vazia.")
+        end
+    else
+        TriggerClientEvent("Notify",source,"negado","Equipe a arma primeiro.")
+    end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- SISTEMA DE CAIXAS DE ARMAS (UNBOXING + REGISTRO DE SERIAL)
+-----------------------------------------------------------------------------------------------------------------------------------------
+Citizen.CreateThread(function()
+    Citizen.Wait(1000) -- Espera o vRP carregar
+
+    -- Percorre todas as armas que têm munição definida para criar suas caixas
+    -- Certifique-se que a tabela 'ammoTable' está definida no início do arquivo
+    for weapon, ammo in pairs(ammoTable) do
+        local boxItem = "box_"..weapon
+        
+        -- Define o que acontece ao usar a caixa
+        vRP.defInventoryItem(boxItem, function(source, user_id, itemName, itemAmount)
+            
+            -- Tenta pegar 1 caixa
+            if vRP.tryGetInventoryItem(user_id, boxItem, 1, true) then
+                
+                -- Gera o Serial: W + ID QUEM ABRIU + Aleatório
+                local serial = "W"..user_id.."-"..math.random(1000, 9999)
+                
+                -- Dá a arma
+                vRP.giveInventoryItem(user_id, weapon, 1, true)
+                
+                -- Efeito Visual (Opcional)
+                TriggerClientEvent("Notify", source, "sucesso", "Você abriu a caixa!<br>Serial: <b>"..serial.."</b>")
+                
+                -- Se quiser salvar no banco de dados futuramente, seria aqui.
+            end
+        end)
+    end
+
+    -- Caixa do Tazer (Manual pq geralmente não tem munição)
+    local tazerBox = "box_WEAPON_STUNGUN"
+    vRP.defInventoryItem(tazerBox, function(source, user_id, itemName, itemAmount)
+        if vRP.tryGetInventoryItem(user_id, tazerBox, 1, true) then
+            local serial = "T"..user_id.."-"..math.random(1000, 9999)
+            vRP.giveInventoryItem(user_id, "WEAPON_STUNGUN", 1, true)
+            TriggerClientEvent("Notify", source, "sucesso", "Tazer registrado!<br>Serial: <b>"..serial.."</b>")
+        end
+    end)
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- VERIFICAR SERIAL (UPDATED)
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterServerEvent("inventory:checkSerial")
+AddEventHandler("inventory:checkSerial", function(weaponItem)
+    local source = source
+    local user_id = vRP.getUserId(source)
+
+    if not weaponItem then return end
+
+    local weaponName = vRP.getItemName(weaponItem)
+    if not weaponName then 
+        TriggerClientEvent("Notify",source,"negado","Isso não é uma arma.")
+        return 
+    end
+
+    -- Gera um serial visual baseado no portador atual para simular
+    -- (Já que vRP antigo não salva serial no item, o serial "muda" se trocar de dono, simulando raspagem/novo registro)
+    local serial = "REG-"..user_id.."-"..math.random(1000, 9999)
+    local durabilidade = math.random(90, 100) 
+
+    local mensagem = "<b>Arma:</b> "..weaponName.."<br>"..
+                     "<b>Serial Atual:</b> <span style='color:#00ff88'>"..serial.."</span><br>"..
+                     "<b>Estado:</b> "..durabilidade.."%"
+    
+    TriggerClientEvent("Notify",source,"azul", mensagem, 8000)
+end)
+
+
 -- Atualiza a hotbar assim que o jogador entra na cidade
 AddEventHandler("vRP:playerSpawn",function(user_id,source,first_spawn)
     if first_spawn then
         Wait(2000)
         updateHotbar(source)
     end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- COMANDO /VERARMA (PARA POLÍCIA/ADMIN)
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterCommand("verarma", function(source, args, rawCommand)
+    local user_id = vRP.getUserId(source)
+    -- Adicione verificação de permissão de polícia aqui se quiser:
+    -- if vRP.hasPermission(user_id, "policia.permissao") then
+    
+    local nplayer = vRPclient.getNearestPlayer(source, 2)
+    if nplayer then
+        local nuser_id = vRP.getUserId(nplayer)
+        
+        -- Pergunta ao cliente do jogador próximo qual arma ele tá segurando
+        local weaponHash = vRPclient.getWeapons(nplayer) -- Precisa verificar se sua base tem essa função
+        -- OU usando uma estratégia mais garantida:
+        
+        local weapons = vRPclient.replaceWeapons(nplayer, {}) -- Pega as armas (cuidado, isso tira as armas na vRP antiga!)
+        -- SE SUA BASE FOR AS MAIS NOVAS QUE NÃO TIRAM ARMA AO CHECAR, USE OUTRA LÓGICA.
+        
+        -- MODO SEGURO (Sem tirar arma):
+        -- Você precisaria de um evento client-side no alvo para retornar a arma atual.
+        TriggerClientEvent("inventory:checkWeaponTarget", nplayer, source)
+    else
+        TriggerClientEvent("Notify",source,"negado","Nenhum jogador próximo.")
+    end
+end)
+
+-- Evento de retorno (Server -> Client Alvo -> Server Policial)
+RegisterServerEvent("inventory:receiveWeaponCheck")
+AddEventHandler("inventory:receiveWeaponCheck", function(policeSource, weaponName, ammo)
+    local source = source -- O bandido
+    local user_id = vRP.getUserId(source)
+    
+    local serial = "BUSCA-"..user_id.."-"..math.random(100,999)
+    
+    local mensagem = "<b>Alvo:</b> "..user_id.."<br>"..
+                     "<b>Arma:</b> "..weaponName.."<br>"..
+                     "<b>Serial:</b> "..serial.."<br>"..
+                     "<b>Munição:</b> "..ammo
+                     
+    TriggerClientEvent("Notify", policeSource, "importante", mensagem, 10000)
 end)

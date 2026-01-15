@@ -32,6 +32,8 @@ let delay = false;
 
 let progressBarInstance = null;
 
+let selectedItemData = null; // Guarda os dados do item clicado
+
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
 /* INIT */
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
@@ -134,27 +136,29 @@ $(document).ready(function () {
         break;
 
         case "updateHotbar":
-            // Aqui vamos preencher os slots 1-5 com as imagens
-            // Supondo que event.data.items seja um objeto { "1": { item: "ak47", amount: 1 }, ... }
-            $(".hotbar-slot").css("background-image", "none").html(""); // Limpa tudo
+                // Limpa os slots visualmente
+                $(".hotbar-slot").css("background-image", "none").html(""); 
 
-            // Recoloca os números (já que limpamos com .html(""))
-            $(".hotbar-slot").each(function() {
-                $(this).text($(this).data("slot")); 
-            });
-
-            if (event.data.items) {
-                $.each(event.data.items, function(slot, data) {
-                    if (slot <= 5) { // Só slots 1 a 5
-                        let $slot = $(`.hotbar-slot[data-slot='${slot}']`);
-                        // Imagem
-                        $slot.css("background-image", `url('http://104.234.65.183/inventario/${data.item}.png')`);
-                        // Quantidade (se quiser mostrar)
-                        $slot.append(`<div class="hotbar-amount">${data.amount}x</div>`);
-                    }
+                // Recoloca os números dos slots (1, 2, 3, 4, 5)
+                $(".hotbar-slot").each(function() {
+                    $(this).text($(this).data("slot")); 
                 });
-            }
-        break;
+
+                // Se receber itens, preenche os slots corretos
+                if (event.data.items) {
+                    $.each(event.data.items, function(slot, data) {
+                        if (slot <= 5) { // Garante que é só até o slot 5
+                            let $slot = $(`.hotbar-slot[data-slot='${slot}']`);
+                            
+                            // CORREÇÃO AQUI: Usamos a variável imageURL correta do seu script
+                            $slot.css("background-image", `url('${imageURL}${data.item}.png')`);
+                            
+                            // Mostra a quantidade no cantinho
+                            $slot.append(`<div class="hotbar-amount">${data.amount}x</div>`);
+                        }
+                    });
+                }
+            break;
 
             case "showVehicles":
                 requestVehicles();
@@ -247,6 +251,142 @@ $(document).ready(function () {
         $.post("http://inventario/invClose", JSON.stringify({}));
     });
 });
+
+/* ---------------------------------------------------------------------------------------
+   SISTEMA DE MENU DE CONTEXTO (CORRIGIDO)
+--------------------------------------------------------------------------------------- */
+// Fecha o menu se o inventário for fechado pelo NUI
+window.addEventListener("message", function (event) {
+    if (event.data.action == "hideMenu" || event.data.action == "close") {
+        $("#context-menu").hide();
+    }
+});
+
+$(document).keyup(function(e) {
+    if (e.key === "Escape") {
+        $("#context-menu").hide();
+        selectedItemData = null;
+    }
+});
+
+/* ---------------------------------------------------------------------------------------
+   SISTEMA DE MENU DE CONTEXTO (CORRIGIDO E TESTADO)
+--------------------------------------------------------------------------------------- */
+// let selectedItemData = null; // Variável global para guardar o item selecionado
+
+// Listener para abrir o menu com Botão Direito
+$(document).on("contextmenu", ".item", function(e) {
+    e.preventDefault(); // Impede o menu padrão do Windows
+
+    // Tenta pegar os dados do item clicado
+    // IMPORTANTE: Seu HTML usa data-item-key, não data-item
+    const itemKey = $(this).data("item-key");
+    const slot = $(this).data("slot");
+    const amount = $(this).data("amount");
+
+    // [BLINDAGEM] Se clicou num slot vazio ou sem item, não faz nada
+    if (!itemKey || itemKey === undefined) {
+        $("#context-menu").hide();
+        return;
+    }
+
+    // Salva os dados para usarmos depois
+    selectedItemData = { 
+        item: itemKey, 
+        slot: slot, 
+        amount: amount 
+    };
+
+    // [DEBUG] Mostra no console (F8) o que você clicou, ajuda a ver se tá pegando certo
+    // console.log("Abriu menu para:", itemKey);
+
+    // Lógica para mostrar opções de arma
+    // Usamos .toString() para garantir que é texto antes do toUpperCase
+    if (itemKey.toString().toUpperCase().includes("WEAPON_")) {
+        $(".weapon-only").show();
+    } else {
+        $(".weapon-only").hide();
+    }
+
+    // Cálculos para o menu não sair da tela
+    let top = e.clientY;
+    let left = e.clientX;
+    
+    // Se passar da largura/altura da tela, ajusta
+    if (left + 180 > window.innerWidth) left = window.innerWidth - 190;
+    if (top + 200 > window.innerHeight) top = window.innerHeight - 210;
+
+    // Mostra o menu na posição correta
+    $("#context-menu").css({
+        "display": "block",
+        "top": top + "px",
+        "left": left + "px"
+    });
+});
+
+$(document).on("click", function(e) {
+    // Se o clique não foi DENTRO do menu, fecha ele
+    if (!$(e.target).closest("#context-menu").length) {
+        $("#context-menu").hide();
+    }
+});
+
+// Ações do menu
+$(".context-option").on("click", function() {
+    // Pega qual ação foi clicada (data-action="use", etc)
+    const action = $(this).data("action");
+    
+    // Se não tiver item selecionado (por algum bug), para
+    if (!selectedItemData || !selectedItemData.item) return;
+
+    // Executa a ação
+    switch(action) {
+        case "use":
+            // Envia para o servidor usar o item
+            $.post("http://inventario/useItem", JSON.stringify({
+                item: selectedItemData.item,
+                slot: selectedItemData.slot,
+                amount: 1 // Usa 1 por padrão
+            }));
+            break;
+
+        case "drop":
+            // Dropa o item
+            $.post("http://inventario/dropItem", JSON.stringify({
+                item: selectedItemData.item,
+                slot: selectedItemData.slot,
+                amount: parseInt(selectedItemData.amount) // Dropa tudo ou ajuste se quiser perguntar qtd
+            }));
+            break;
+
+        case "send":
+            // Para enviar, geralmente precisa abrir um input de ID. 
+            // Se ainda não tiver, deixe comentado ou implemente depois.
+             $.post("http://inventario/sendItem", JSON.stringify({
+                item: selectedItemData.item,
+                slot: selectedItemData.slot,
+                amount: parseInt(selectedItemData.amount)
+            }));
+            break;
+            
+        case "removeAmmo":
+             $.post("http://inventario/removeAmmo", JSON.stringify({
+                item: selectedItemData.item
+            }));
+            break;
+
+        case "checkSerial":
+             $.post("http://inventario/checkSerial", JSON.stringify({
+                item: selectedItemData.item
+            }));
+            break;
+    }
+
+    // Fecha o menu e limpa a seleção
+    $("#context-menu").hide();
+    selectedItemData = null;
+});
+
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
 /* SISTEMA DO INVENTARIO JOGADOR */
@@ -641,25 +781,41 @@ const updateDrag = () => {
         }
     });
 
-    $(".populated").on("auxclick", e => {
-        e.preventDefault();
-        if (e.which === 3) {
-            const item = e.target;
-            const origin = $(item).parent()[0].className;
-            if (origin === undefined || origin === "invRight") return;
+    $(document).keyup(function(e) {
+    if (e.key === "Escape") {
+        $("#context-menu").hide();
+    }
+});
 
-            itemData = { key: $(item).data('item-key'), slot: $(item).data('slot') };
-
-            if (itemData.key === undefined) return;
-
-            $.post("http://inventario/useItem", JSON.stringify({
-                item: itemData.key,
-                slot: itemData.slot,
-                amount: parseInt(parseInt($(".amount").val()))
-            }));
-        }
-    });
+$(document).on("mousedown", function(e) {
+    // Se o clique NÃO for dentro do menu de contexto, esconde ele
+    if (!$(e.target).closest("#context-menu").length) {
+        $("#context-menu").hide();
+    }
+});
 }
+
+
+
+//     $(".populated").on("auxclick", e => {
+//         e.preventDefault();
+//         if (e.which === 3) {
+//             const item = e.target;
+//             const origin = $(item).parent()[0].className;
+//             if (origin === undefined || origin === "invRight") return;
+
+//             itemData = { key: $(item).data('item-key'), slot: $(item).data('slot') };
+
+//             if (itemData.key === undefined) return;
+
+//             $.post("http://inventario/useItem", JSON.stringify({
+//                 item: itemData.key,
+//                 slot: itemData.slot,
+//                 amount: parseInt(parseInt($(".amount").val()))
+//             }));
+//         }
+//     });
+// }
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
 /* SISTEMA DE INVENTARIO VEICULOS */
@@ -1963,4 +2119,73 @@ const formatarNumero = n => {
 window.addEventListener("offline", function () {
     $(".inventory").css("display", "none")
     $.post("http://inventario/invClose", JSON.stringify({}));
+});
+
+$(document).on("contextmenu", ".item", function(e) {
+    e.preventDefault(); // Bloqueia o menu padrão do navegador
+
+    // Pega os dados do item clicado
+    const type = $(this).data("type"); // Você precisa ter data-type="weapon" no HTML do item
+    const item = $(this).data("item");
+    const slot = $(this).data("slot");
+    const amount = $(this).data("amount");
+
+    selectedItemData = { item, slot, amount, type };
+
+    // Posiciona o menu onde o mouse está
+    $("#context-menu").css({
+        top: e.pageY + "px",
+        left: e.pageX + "px",
+        display: "block"
+    });
+
+    // Lógica para mostrar opções de arma
+    // Se o nome do item começar com "WEAPON_" ou for do tipo arma
+    if (item.toUpperCase().includes("WEAPON_")) {
+        $(".weapon-only").show();
+    } else {
+        $(".weapon-only").hide();
+    }
+});
+
+// Fecha o menu se clicar fora
+$(document).on("click", function() {
+    $("#context-menu").hide();
+});
+
+// Ação ao clicar nas opções do menu
+$(".context-option").on("click", function() {
+    const action = $(this).data("action");
+    
+    if (!selectedItemData) return;
+
+    if (action === "use") {
+        // Função original de usar
+        $.post("http://inventario/useItem", JSON.stringify({
+            item: selectedItemData.item,
+            slot: selectedItemData.slot,
+            amount: 1
+        }));
+    } else if (action === "drop") {
+        // Abre modal de dropar ou dropa 1 direto (você escolhe)
+        $.post("http://inventario/dropItem", JSON.stringify({
+            item: selectedItemData.item,
+            slot: selectedItemData.slot,
+            amount: selectedItemData.amount 
+        }));
+    } else if (action === "send") {
+        // Lógica de enviar (precisa implementar modal de ID depois)
+    } else if (action === "removeAmmo") {
+        // NOVA FUNÇÃO: Remover Munição
+        $.post("http://inventario/removeAmmo", JSON.stringify({
+            item: selectedItemData.item
+        }));
+    } else if (action === "checkSerial") {
+        // NOVA FUNÇÃO: Ver Serial
+        $.post("http://inventario/checkSerial", JSON.stringify({
+            item: selectedItemData.item
+        }));
+    }
+
+    $("#context-menu").hide();
 });

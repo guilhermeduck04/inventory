@@ -1127,3 +1127,142 @@ AddEventHandler("inventory:NotifyItem",function(item,name,amount,mode)
         mode = mode
     })
 end)
+
+-- EVENTO PARA FORÇAR A ARMA NA MÃO
+RegisterNetEvent("inventory:EquipWeapon")
+AddEventHandler("inventory:EquipWeapon", function(weaponName)
+    local ped = PlayerPedId()
+    local hash = GetHashKey(weaponName)
+    
+    -- Força a arma para a mão
+    SetCurrentPedWeapon(ped, hash, true)
+end)
+
+-- VERIFICA SE A ARMA ESTÁ NA MÃO (Ajuda a evitar o bug de equipar infinito)
+function src.checkWeaponInHand(weaponItem)
+    local ped = PlayerPedId()
+    local currentHash = GetSelectedPedWeapon(ped)
+    local itemHash = GetHashKey(weaponItem)
+    
+    return currentHash == itemHash
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- SISTEMA DE RECARREGAR (LIMITE 250 BALAS)
+-----------------------------------------------------------------------------------------------------------------------------------------
+local reloadCooldown = 0
+
+CreateThread(function()
+    while true do
+        local idle = 1000
+        local ped = PlayerPedId()
+        
+        -- Verifica se está armado
+        if IsPedArmed(ped, 4) then
+            idle = 5
+            
+            -- [FIX] Impede o boneco de guardar a arma sozinho
+            SetPedConfigFlag(ped, 48, true) 
+            
+            if reloadCooldown > 0 then
+                reloadCooldown = reloadCooldown - 1
+            end
+
+            local weaponHash = GetSelectedPedWeapon(ped)
+            local totalAmmo = GetAmmoInPedWeapon(ped, weaponHash) -- Pega a munição TOTAL (Pente + Reserva)
+            local maxLimit = 250 -- SEU LIMITE MÁXIMO DEFINIDO
+
+            -- CONDIÇÃO: Apertou R OU (Acabou a bala e tentou atirar)
+            if (IsControlJustPressed(0, 45) or (totalAmmo <= 0 and IsControlPressed(0, 24))) and reloadCooldown <= 0 then
+                
+                if not IsPedReloading(ped) then
+                    
+                    -- Verifica se já chegou no limite
+                    if totalAmmo < maxLimit then
+                        local amountNeeded = maxLimit - totalAmmo -- Calcula quanto falta pra 250
+                        
+                        reloadCooldown = 100 -- Delay de segurança
+                        TriggerServerEvent("inventory:ReloadWeapon", weaponHash, amountNeeded)
+                    else
+                        -- Opcional: Avisar que tá cheio se apertar R
+                        if IsControlJustPressed(0, 45) then
+                            TriggerEvent("Notify","aviso","Munição <b>cheia</b> (Máx: "..maxLimit..").")
+                        end
+                    end
+                end
+            end
+        else
+            if idle == 5 then idle = 1000 end
+        end
+        
+        Wait(idle)
+    end
+end)
+
+-- AJUDA A LIMPAR A MÃO QUANDO DESEQUIPA
+RegisterNetEvent("inventory:UnequipWeapon")
+AddEventHandler("inventory:UnequipWeapon", function()
+    local ped = PlayerPedId()
+    SetCurrentPedWeapon(ped, GetHashKey("WEAPON_UNARMED"), true)
+end)
+
+-- EVENTO PARA FORÇAR A ARMA NA MÃO
+RegisterNetEvent("inventory:EquipWeapon")
+AddEventHandler("inventory:EquipWeapon", function(weaponName)
+    local ped = PlayerPedId()
+    local hash = GetHashKey(weaponName)
+    SetCurrentPedWeapon(ped, hash, true)
+end)
+
+-- ADICIONAR MUNIÇÃO NA ARMA (GARANTIDO)
+RegisterNetEvent("inventory:ClientAddAmmo")
+AddEventHandler("inventory:ClientAddAmmo", function(weaponName, amount)
+    local ped = PlayerPedId()
+    local hash = GetHashKey(weaponName)
+    
+    -- Adiciona a munição
+    AddAmmoToPed(ped, hash, amount)
+    
+    -- Se a arma estava zerada, forçamos um reload visual para ficar bonito
+    if GetAmmoInClip(ped, hash) == 0 then
+        SetPedAmmoToDrop(ped, 0)
+        MakePedReload(ped)
+    end
+end)
+
+-- VERIFICA SE A ARMA ESTÁ NA MÃO
+function src.checkWeaponInHand(weaponItem)
+    local ped = PlayerPedId()
+    local currentHash = GetSelectedPedWeapon(ped)
+    local itemHash = GetHashKey(weaponItem)
+    
+    return currentHash == itemHash
+end
+
+-- Recebe o clique de remover munição da NUI
+RegisterNUICallback("removeAmmo", function(data, cb)
+    TriggerServerEvent("inventory:removeAmmo", data.item)
+    cb("ok")
+end)
+
+-- Recebe o clique de ver serial da NUI
+RegisterNUICallback("checkSerial", function(data, cb)
+    TriggerServerEvent("inventory:checkSerial", data.item)
+    cb("ok")
+end)
+
+RegisterNetEvent("inventory:checkWeaponTarget")
+AddEventHandler("inventory:checkWeaponTarget", function(policeSource)
+    local ped = PlayerPedId()
+    local weaponHash = GetSelectedPedWeapon(ped)
+    
+    if weaponHash ~= GetHashKey("WEAPON_UNARMED") then
+        local ammo = GetAmmoInPedWeapon(ped, weaponHash)
+        
+        -- Tenta descobrir o nome da arma pelo Hash (simples)
+        -- Idealmente você teria uma tabela reversa Hash -> Nome
+        TriggerServerEvent("inventory:receiveWeaponCheck", policeSource, "Arma Identificada ("..weaponHash..")", ammo)
+    else
+        TriggerServerEvent("inventory:receiveWeaponCheck", policeSource, "Desarmado", 0)
+    end
+end)
