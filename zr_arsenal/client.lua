@@ -171,3 +171,19 @@ RegisterNUICallback('Limpar', function(data, cb)
     PlaySoundFrontend(-1, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET", 1)
     if cb then cb('ok') end
 end)
+
+RegisterNetEvent("zr_arsenal:giveWeapon")
+AddEventHandler("zr_arsenal:giveWeapon", function(weaponName)
+    if not weaponName then return end
+    local ped = PlayerPedId()
+    local hash = GetHashKey(weaponName)
+    GiveWeaponToPed(ped, hash, 0, false, true)
+    SetPedAmmo(ped, hash, 0)
+end)
+
+RegisterNetEvent("zr_arsenal:removeWeapon")
+AddEventHandler("zr_arsenal:removeWeapon", function(weaponName)
+    if not weaponName then return end
+    local ped = PlayerPedId()
+    RemoveWeaponFromPed(ped, GetHashKey(weaponName))
+end)

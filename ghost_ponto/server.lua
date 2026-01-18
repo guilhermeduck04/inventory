@@ -256,6 +256,7 @@ AddEventHandler("vrp_ponto:trocar", function()
                     vRP.removeUserGroup(user_id, k)
                     vRP.addUserGroup(user_id, jobOriginal)
                     TriggerClientEvent("Notify", source, "sucesso", "Ponto batido! Bom trabalho.")
+                    TriggerEvent("zr_arsenal:issueDutyTokens", source)
                     
                     activeWorkers[user_id] = true -- Adiciona na lista de salvamento
                     trocou = true
@@ -270,6 +271,7 @@ AddEventHandler("vrp_ponto:trocar", function()
                     vRP.addUserGroup(user_id, jobPaisana)
                     limparArmasServico(source)
                     TriggerClientEvent("Notify", source, "aviso", "Você entrou em folga.")
+                    TriggerEvent("zr_arsenal:clearDutyTokens", source, "duty_off")
                     
                     activeWorkers[user_id] = nil -- Remove da lista de salvamento
                     trocou = true
@@ -302,6 +304,7 @@ AddEventHandler("vRP:playerSpawn", function(user_id, source, first_spawn)
                         if player then
                             limparArmasServico(player)
                             TriggerClientEvent("Notify", player, "aviso", "Você entrou na cidade e foi colocado em folga.")
+                            TriggerEvent("zr_arsenal:clearDutyTokens", player, "spawn_cleanup")
                         end
                     end)
                     activeWorkers[user_id] = nil
