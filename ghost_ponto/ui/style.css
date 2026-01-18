@@ -1,0 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    user-select: none;
+}
+
+#tablet-container {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Fundo desfocado do jogo */
+    background: rgba(20, 20, 20, 0.4); 
+}
+
+/* --- CHASSIS DO TABLET --- */
+.tablet-body {
+    width: 860px;
+    height: 600px;
+    background: #0d0d0d;
+    border-radius: 35px;
+    box-shadow: 
+        0 0 0 2px #333,
+        0 20px 50px rgba(0,0,0,0.8);
+    position: relative;
+    padding: 15px; /* Borda preta (bezel) */
+    box-sizing: border-box;
+}
+
+.camera-hole {
+    position: absolute;
+    top: 25px;
+    left: 25px; /* Canto superior esquerdo estilo iPad Air novo ou centralizado */
+    width: 12px;
+    height: 12px;
+    background: #1a1a1a;
+    border-radius: 50%;
+    box-shadow: inset 0 0 4px #000;
+    z-index: 10;
+}
+
+/* --- TELA --- */
+.screen {
+    width: 100%;
+    height: 100%;
+    background: url('https://i.ibb.co/8DgWp6f7/Horizon-City-Logo1.png') no-repeat center center;
+    background-size: cover;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Película escura sobre o wallpaper */
+.screen::before {
+    content: '';
+    position: absolute;
+    top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: transparent(5px);
+    z-index: 0;
+}
+
+/* --- BARRA DE STATUS --- */
+.status-bar {
+    height: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    color: white;
+    font-size: 12px;
+    z-index: 2;
+    background: rgba(0,0,0,0.2);
+}
+.right-icons i, .left-icons i { margin: 0 5px; }
+
+/* --- LOGIN SCREEN --- */
+#login-screen {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+    color: white;
+}
+.login-content {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: transparent(15px);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+.user-avatar i { font-size: 60px; margin-bottom: 15px; color: #ddd; }
+.fingerprint-container {
+    width: 80px;
+    height: 80px;
+    margin: 20px auto;
+    position: relative;
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+.finger-img { width: 60%; opacity: 0.8; filter: invert(1); }
+.fingerprint-container:hover { border-color: #00ff88; box-shadow: 0 0 15px rgba(0,255,136,0.3); }
+
+/* --- DASHBOARD --- */
+#dashboard-screen {
+    flex: 1;
+    z-index: 2;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    color: white;
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.app-header h1 { margin: 0; font-weight: 300; }
+.job-badge {
+    background: rgba(255,255,255,0.15);
+    padding: 8px 15px;
+    border-radius: 50px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+}
+
+/* Grid Layout */
+.widgets-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* Estilo Geral dos Widgets */
+.widget {
+    background: rgba(30, 30, 30, 0.6);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 15px;
+    padding: 20px;
+    backdrop-filter: transparent(10px);
+    transition: 0.3s;
+}
+.widget:hover { background: rgba(40,40,40,0.7); }
+
+.full-width { grid-column: span 3; }
+
+/* Widget Ação (Botão) */
+.action-widget {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.status-indicator { width: 15px; height: 15px; border-radius: 50%; margin-bottom: 10px; box-shadow: 0 0 10px currentColor; }
+.status-indicator.on { background: #2ecc71; color: #2ecc71; }
+.status-indicator.off { background: #e74c3c; color: #e74c3c; }
+
+#btn-ponto {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 800;
+    width: 100%;
+    transition: 0.2s;
+}
+
+/* Widget Finanças */
+.finance-widget { display: flex; flex-direction: column; justify-content: center; gap: 15px; }
+.finance-item { display: flex; align-items: center; gap: 15px; font-size: 1.1em; }
+.finance-item i { color: #f1c40f; width: 25px; text-align: center; }
+.finance-item small { display: block; font-size: 0.7em; color: #aaa; }
+
+/* Widget Stats */
+.stats-widget { display: flex; flex-direction: column; justify-content: space-around; }
+.stat-item { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+.stat-item:last-child { border: none; padding-top: 10px; padding-bottom: 0; }
+.stat-item h4 { margin: 0; font-weight: 400; font-size: 0.9em; flex: 1; margin-left: 10px; }
+.stat-item span { font-weight: 700; color: #00d2ff; }
+
+/* Leader Area */
+.leader-widget { max-height: 200px; overflow: hidden; display: flex; flex-direction: column; }
+.leader-header { margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.employee-list { overflow-y: auto; flex: 1; padding-right: 5px; }
+
+.emp-item {
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.emp-status-dot { width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+/* Scrollbar Bonita */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+/* Botão Home Físico */
+.home-btn-physical {
+    position: absolute;
+    right: -5px; /* Lateral estilo botão power/home lateral */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 60px;
+    background: #222;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    border-left: 1px solid #000;
+}
+.home-btn-physical:active { background: #333; }

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div id="tablet-container" style="display:none;">
+        <div class="tablet-body">
+            <div class="camera-hole"></div>
+            <div class="power-button"></div>
+            <div class="volume-button"></div>
+
+            <div class="screen">
+                <div class="status-bar">
+                    <div class="left-icons">
+                        <span id="carrier">Horizon OS</span>
+                        <i class="fas fa-wifi"></i>
+                    </div>
+                    <div class="time-display" id="top-clock">12:00</div>
+                    <div class="right-icons">
+                        <span id="battery-level">100%</span>
+                        <i class="fas fa-battery-full"></i>
+                    </div>
+                </div>
+
+                <div id="login-screen">
+                    <div class="login-content">
+                        <div class="user-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h2>Acesso Restrito</h2>
+                        <p>Sistema Governamental de Ponto</p>
+                        
+                        <div class="fingerprint-container" onclick="autenticar()">
+                            <div class="scan-line"></div>
+                            <img src="img/fingerprint.png" alt="Digital" class="finger-img">
+                        </div>
+                        <small>Toque na digital para validar</small>
+                    </div>
+                </div>
+
+                <div id="dashboard-screen" style="display:none;">
+                    
+                    <div class="app-header">
+                        <div class="header-text">
+                            <h1>Olá, <span id="player-name">Nome</span></h1>
+                            <span class="subtitle">ID: <span id="player-id">0</span></span>
+                        </div>
+                        <div class="job-badge">
+                            <i class="fas fa-id-badge"></i>
+                            <span id="job-name">Polícia</span>
+                        </div>
+                    </div>
+
+                    <div class="widgets-grid">
+                        
+                        <div class="widget action-widget">
+                            <div class="status-indicator off" id="status-ball"></div>
+                            <h3 id="work-status-text">Fora de Serviço</h3>
+                            <button id="btn-ponto" onclick="baterPonto()">INICIAR TURNO</button>
+                        </div>
+
+                        <div class="widget finance-widget">
+                            <div class="finance-item">
+                                <i class="fas fa-wallet"></i>
+                                <div>
+                                    <small>Carteira</small>
+                                    <span id="wallet-val">$0</span>
+                                </div>
+                            </div>
+                            <div class="finance-item">
+                                <i class="fas fa-university"></i>
+                                <div>
+                                    <small>Banco</small>
+                                    <span id="bank-val">$0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="widget stats-widget">
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <h4>Horas Totais</h4>
+                                <span id="my-hours">00h 00m</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <h4>Colegas Online</h4>
+                                <span id="online-count">0</span>
+                            </div>
+                        </div>
+
+                        <div class="widget full-width leader-widget" id="leader-area" style="display:none;">
+                            <div class="leader-header">
+                                <h3><i class="fas fa-chart-pie"></i> Gestão de Equipe</h3>
+                            </div>
+                            <div class="employee-list" id="employee-list">
+                                </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="home-btn-physical" onclick="fecharTablet()"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
