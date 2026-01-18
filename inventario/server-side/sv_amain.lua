@@ -122,7 +122,8 @@ local ammoTable = {
 }
 
 local function hasEquippedWeapon(source)
-    return vCLIENT.isWeaponInHand(source)
+    local currentWeapon = vRPclient.getWeapons(source)
+    return currentWeapon and next(currentWeapon) ~= nil
 end
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- OBJECTS
@@ -779,6 +780,7 @@ elseif item == "chave_algemas" then
 								TriggerClientEvent("Notify", source, "negado", "Guarde a arma antes de usar este item.")
 								return
 							end
+
 							if item == "bandagem" then
 
 								if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
