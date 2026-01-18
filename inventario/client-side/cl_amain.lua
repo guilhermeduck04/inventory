@@ -1266,3 +1266,8 @@ AddEventHandler("inventory:checkWeaponTarget", function(policeSource)
         TriggerServerEvent("inventory:receiveWeaponCheck", policeSource, "Desarmado", 0)
     end
 end)
+function src.getAmmoInWeapon(weaponItem)
+    local ped = PlayerPedId()
+    local hash = GetHashKey(weaponItem)
+    return GetAmmoInPedWeapon(ped, hash)
+end

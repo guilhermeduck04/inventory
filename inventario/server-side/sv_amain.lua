@@ -756,11 +756,18 @@ function src.droparItem(slot,amount)
 
 				local itemName = inv[tostring(slot)].item
 
-				if vRP.tryGetInventoryItem(user_id,itemName, parseInt(amount), true, slot) then
-					TriggerClientEvent("inventory:NotifyItem",source, itemName, vRP.getItemName(itemName), amount, "removido")
-					vRPclient._playAnim(source,true,{{"pickup_object","pickup_low"}},false)
-					src.createDropItem(itemName,parseInt(amount),source)
-					vCLIENT.updateInventory(source, "updateMochila")
+					if vRP.tryGetInventoryItem(user_id,itemName, parseInt(amount), true, slot) then
+						if itemName:sub(1, 7) == "WEAPON_" then
+							local isEquipped = vCLIENT.checkWeaponInHand(source, itemName)
+							if isEquipped then
+								vRPclient._replaceWeapons(source, {})
+								TriggerClientEvent("inventory:UnequipWeapon", source)
+							end
+						end
+						TriggerClientEvent("inventory:NotifyItem",source, itemName, vRP.getItemName(itemName), amount, "removido")
+						vRPclient._playAnim(source,true,{{"pickup_object","pickup_low"}},false)
+						src.createDropItem(itemName,parseInt(amount),source)
+						vCLIENT.updateInventory(source, "updateMochila")
 
 					local nplayer = vRP.getNearestPlayer(source, 15)
 					if nplayer then
@@ -852,10 +859,17 @@ function src.sendItem(item,slot,amount)
 			if nplayer then
 				local nuser_id = vRP.getUserId(nplayer)
 				if vRP.computeInvWeight(nuser_id)+vRP.getItemWeight(tostring(item))*parseInt(amount) <= vRP.getInventoryMaxWeight(nuser_id) then
-					if vRP.tryGetInventoryItem(user_id, item, parseInt(amount), true, slot) then
-						vRPclient._playAnim(source,true,{{"mp_common","givetake1_a"}},false)
-						vRP.giveInventoryItem(nuser_id, item, parseInt(amount), true)
-						vRPclient._playAnim(nplayer,true,{{"mp_common","givetake1_a"}},false)
+						if vRP.tryGetInventoryItem(user_id, item, parseInt(amount), true, slot) then
+							if item:sub(1, 7) == "WEAPON_" then
+								local isEquipped = vCLIENT.checkWeaponInHand(source, item)
+								if isEquipped then
+									vRPclient._replaceWeapons(source, {})
+									TriggerClientEvent("inventory:UnequipWeapon", source)
+								end
+							end
+							vRPclient._playAnim(source,true,{{"mp_common","givetake1_a"}},false)
+							vRP.giveInventoryItem(nuser_id, item, parseInt(amount), true)
+							vRPclient._playAnim(nplayer,true,{{"mp_common","givetake1_a"}},false)
 
 						vRP.sendLog("ENVIAR", "O ID "..user_id.." enviou o item "..vRP.getItemName(item).." na quantidade de "..amount.."x para o id "..nuser_id..".")
 					end
@@ -1036,9 +1050,16 @@ function src.colocarVehicle(item,amount,slot,mPlate,mName)
 			if openedVehicle[mPlaca] == user_id and dataVehicle[mPlaca][1] ~= nil then
 				if vRP.computeItemsWeight(dataVehicle[mPlaca][1])+vRP.getItemWeight(item)*parseInt(amount) <= VehicleChest(mName) then
 					
-					if vRP.tryGetInventoryItem(user_id, item, amount, true) then
-						dataVehicle[mPlaca][1][tostring(slot)] =  { amount = amount, item = item }
-					end
+						if vRP.tryGetInventoryItem(user_id, item, amount, true) then
+							if item:sub(1, 7) == "WEAPON_" then
+								local isEquipped = vCLIENT.checkWeaponInHand(source, item)
+								if isEquipped then
+									vRPclient._replaceWeapons(source, {})
+									TriggerClientEvent("inventory:UnequipWeapon", source)
+								end
+							end
+							dataVehicle[mPlaca][1][tostring(slot)] =  { amount = amount, item = item }
+						end
 
 				else
 					TriggerClientEvent( "Notify", source, "negado", "Porta malas cheio." )
@@ -2228,12 +2249,14 @@ AddEventHandler("inventory:removeAmmo", function(weaponItem)
         local currentAmmo = vRPclient.getAmmoInWeapon(source, weaponItem)
         
         if currentAmmo > 0 then
-            vRPclient.setWeaponAmmo(source, weaponItem, 0)
             local ammoItem = ammoTable[weaponItem]
             if ammoItem then
-                vRP.giveInventoryItem(user_id, ammoItem, currentAmmo)
+                vRPclient.setWeaponAmmo(source, weaponItem, 0)
+                vRP.giveInventoryItem(user_id, ammoItem, currentAmmo, true)
                 TriggerClientEvent("Notify",source,"sucesso","Você removeu <b>"..currentAmmo.."x</b> balas.")
                 updateHotbar(source)
+            else
+                TriggerClientEvent("Notify",source,"negado","Esta arma não possui munição compatível.")
             end
         else
             TriggerClientEvent("Notify",source,"negado","Arma está vazia.")

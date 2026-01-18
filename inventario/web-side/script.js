@@ -2139,7 +2139,7 @@ $(document).on("contextmenu", ".item", function(e) {
 
     // Lógica para mostrar opções de arma
     // Se o nome do item começar com "WEAPON_" ou for do tipo arma
-    if (item.toUpperCase().includes("WEAPON_")) {
+    if (item && item.toUpperCase().includes("WEAPON_")) {
         $(".weapon-only").show();
     } else {
         $(".weapon-only").hide();
