@@ -1158,6 +1158,12 @@ function src.checkWeaponInHand(weaponItem)
     local inHand = GetSelectedPedWeapon(ped)
     return inHand == GetHashKey(weaponName)
 end
+
+function src.isWeaponInHand()
+    local ped = PlayerPedId()
+    local inHand = GetSelectedPedWeapon(ped)
+    return inHand ~= GetHashKey("WEAPON_UNARMED")
+end
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- SISTEMA DE RECARREGAR (LIMITE 250 BALAS)
 -----------------------------------------------------------------------------------------------------------------------------------------
