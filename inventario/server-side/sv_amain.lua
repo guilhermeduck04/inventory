@@ -321,6 +321,17 @@ function src.useItem(slot, amount)
 									TriggerClientEvent("Notify",source,"sucesso","<b>Colete</b> colocado com sucesso.",8000)
 								end
 
+							elseif item:sub(1, 4) == "box_" then
+								local weapon = item:sub(5)
+								local serial = "W"..user_id.."-"..math.random(1000, 9999)
+								
+								if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
+									vRP.giveInventoryItem(user_id, weapon, 1, true, nil, serial) -- Adiciona o serial
+									TriggerClientEvent("Notify", source, "sucesso", "Você abriu a caixa!<br>Serial: <b>"..serial.."</b>")
+								else
+									TriggerClientEvent("Notify", source, "negado", "Erro ao abrir a caixa.")
+								end
+
 							elseif item == "c4" then
 								atmTimers = {}
 								local Hash = "ch_prop_ch_ld_bomb_01a"
@@ -2235,43 +2246,6 @@ end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- SISTEMA DE CAIXAS DE ARMAS (UNBOXING + REGISTRO DE SERIAL)
 -----------------------------------------------------------------------------------------------------------------------------------------
-Citizen.CreateThread(function()
-    Citizen.Wait(1000) -- Espera o vRP carregar
-
-    -- Percorre todas as armas que têm munição definida para criar suas caixas
-    -- Certifique-se que a tabela 'ammoTable' está definida no início do arquivo
-    for weapon, ammo in pairs(ammoTable) do
-        local boxItem = "box_"..weapon
-        
-        -- Define o que acontece ao usar a caixa
-        vRP.defInventoryItem(boxItem, function(source, user_id, itemName, itemAmount)
-            
-            -- Tenta pegar 1 caixa
-            if vRP.tryGetInventoryItem(user_id, boxItem, 1, true) then
-                
-                -- Gera o Serial: W + ID QUEM ABRIU + Aleatório
-                local serial = "W"..user_id.."-"..math.random(1000, 9999)
-                
-                -- Dá a arma
-                vRP.giveInventoryItem(user_id, weapon, 1, true)
-                
-                -- Efeito Visual (Opcional)
-                TriggerClientEvent("Notify", source, "sucesso", "Você abriu a caixa!<br>Serial: <b>"..serial.."</b>")
-                
-                -- Se quiser salvar no banco de dados futuramente, seria aqui.
-            end
-        end)
-    end
-
-    -- Caixa do Tazer (Manual pq geralmente não tem munição)
-    local tazerBox = "box_WEAPON_STUNGUN"
-    vRP.defInventoryItem(tazerBox, function(source, user_id, itemName, itemAmount)
-        if vRP.tryGetInventoryItem(user_id, tazerBox, 1, true) then
-            local serial = "T"..user_id.."-"..math.random(1000, 9999)
-            vRP.giveInventoryItem(user_id, "WEAPON_STUNGUN", 1, true)
-            TriggerClientEvent("Notify", source, "sucesso", "Tazer registrado!<br>Serial: <b>"..serial.."</b>")
-        end
-    end)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
