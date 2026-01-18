@@ -593,33 +593,36 @@ elseif item == "chave_algemas" then
 							end								
 
 if itemType == "equipar" then
-                            -- COOLDOWN REDUZIDO: De 5 para 1 segundo (Muito mais rápido)
-                            func:setCooldown(user_id, "inventario", 1)
-
-                            -- Verifica no cliente se a arma JÁ está na mão (Toggle)
-                            local isEquipped = vCLIENT.checkWeaponInHand(source, item)
-
-                            if isEquipped then
-                                -- --- DESEQUIPAR (GUARDAR) ---
-                                vRPclient._replaceWeapons(source, {}) -- Limpa a mão
-                                TriggerClientEvent("inventory:UnequipWeapon", source) -- Garante animação
-                                TriggerClientEvent("Notify",source,"azul","Arma <b>guardada</b>.")
-                            else
-                                -- --- EQUIPAR (PUXAR) ---
-                                if vRP.getInventoryItemAmount(user_id, item) >= 1 then
-                                    local weapons = {}
-                                    weapons[item] = { ammo = 0 } -- Vem sem munição (recarrega com R)
-                                    
-                                    vRPclient._giveWeapons(source, weapons)
-                                    TriggerClientEvent("inventory:EquipWeapon", source, item) -- Força pra mão
-                                    TriggerClientEvent("Notify",source,"sucesso","Arma <b>equipada</b>.")
-                                else
-                                    TriggerClientEvent("Notify",source,"negado","Você não possui este item.")
-                                end
-                            end
-                            
-                            updateHotbar(source)
-                        end
+	                            -- COOLDOWN REDUZIDO: De 5 para 1 segundo (Muito mais rápido)
+	                            func:setCooldown(user_id, "inventario", 1)
+	
+	                            -- Verifica no cliente se a arma JÁ está na mão (Toggle)
+	                            local isEquipped = vCLIENT.checkWeaponInHand(source, item)
+	
+	                            if isEquipped then
+	                                -- --- DESEQUIPAR (GUARDAR) ---
+	                                vRPclient._replaceWeapons(source, {}) -- Limpa a mão
+	                                TriggerClientEvent("inventory:UnequipWeapon", source) -- Garante animação
+	                                TriggerClientEvent("Notify",source,"azul","Arma <b>guardada</b>.")
+	                            else
+	                                -- --- EQUIPAR (PUXAR / TROCAR) ---
+	                                if vRP.getInventoryItemAmount(user_id, item) >= 1 then
+	                                    -- Limpa a mão antes de dar a nova arma (Troca Rápida)
+	                                    vRPclient._replaceWeapons(source, {})
+	                                    
+	                                    local weapons = {}
+	                                    weapons[item] = { ammo = 0 } -- Vem sem munição (recarrega com R)
+	                                    
+	                                    vRPclient._giveWeapons(source, weapons)
+	                                    TriggerClientEvent("inventory:EquipWeapon", source, item) -- Força pra mão
+	                                    TriggerClientEvent("Notify",source,"sucesso","Arma <b>equipada</b>.")
+	                                else
+	                                    TriggerClientEvent("Notify",source,"negado","Você não possui este item.")
+	                                end
+	                            end
+	                            
+	                            updateHotbar(source)
+	                        end
 
 
 						if itemType == "beber" then

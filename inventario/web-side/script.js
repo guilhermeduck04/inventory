@@ -300,7 +300,7 @@ $(document).on("contextmenu", ".item", function(e) {
 
     // Lógica para mostrar opções de arma
     // Usamos .toString() para garantir que é texto antes do toUpperCase
-    if (itemKey.toString().toUpperCase().includes("WEAPON_")) {
+    if (itemKey && itemKey.toString().toUpperCase().indexOf("WEAPON_") !== -1) {
         $(".weapon-only").show();
     } else {
         $(".weapon-only").hide();
