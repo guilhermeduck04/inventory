@@ -227,16 +227,17 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 /* --- MENU DE CONTEXTO --- */
 .context-menu {
     display: none;
-    position: fixed; /* Fixed garante que fique na frente */
-    z-index: 9999999 !important; /* Maior que o 10 dos itens */
-    width: 180px;
-    background: rgba(15, 15, 20, 0.98);
-    border: 1px solid rgba(0, 255, 136, 0.4);
-    border-radius: 4px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 1);
-    padding: 5px 0;
-    pointer-events: all;
+    position: fixed; /* MUDADO DE ABSOLUTE PARA FIXED */
+    z-index: 9999; /* Garante que fique na frente de tudo */
+    background: rgba(15, 15, 15, 0.294);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    flex-direction: column;
+    width: 120px;
+    padding: 5px;
+    gap: 5px;
 }
+
 .context-option { padding: 10px 15px; color: #fff; font-family: 'Roboto', sans-serif; font-size: 12px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; }
 .context-option:hover {
     background-color: rgba(255, 255, 255, 0.1);

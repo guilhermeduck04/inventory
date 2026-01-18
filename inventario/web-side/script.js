@@ -2126,32 +2126,32 @@ window.addEventListener("offline", function () {
     $.post("http://inventario/invClose", JSON.stringify({}));
 });
 
-// Listener para abrir o menu com Botão Direito
 $(document).on("contextmenu", ".item", function(e) {
-    e.preventDefault(); // Impede o menu padrão do navegador
+    e.preventDefault();
 
-    // Verifica se o item é válido e tem dados
     let itemData = { 
         key: $(this).data('item-key'), 
         slot: $(this).data('slot'),
-        amount: $(this).data('amount'),
-        type: $(this).data('type') // Se houver tipo (arma, item, etc)
+        amount: $(this).data('amount')
     };
 
     if (itemData.key === undefined) return;
 
-    // Salva o item selecionado globalmente para as ações (Usar, Dropar, Enviar)
     selectedItemData = itemData;
 
-    // Mostra o Menu de Contexto na posição do mouse
+    // [FIX] Pega a posição correta do mouse na janela
+    let x = e.clientX;
+    let y = e.clientY;
+
+    // Mostra o menu
     $(".context-menu").css({
         display: "flex",
-        top: e.pageY + "px",
-        left: e.pageX + "px"
+        top: y + "px",
+        left: x + "px"
     });
 });
 
-// Fechar menu de contexto ao clicar fora
+// Fechar ao clicar fora
 $(document).click(function() {
     $(".context-menu").hide();
 });
