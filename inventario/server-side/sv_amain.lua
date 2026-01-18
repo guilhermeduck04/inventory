@@ -121,19 +121,9 @@ local ammoTable = {
     ["WEAPON_PETROLCAN"]        = "AMMO_PETROLCAN"
 }
 
-local function autoUnequipWeapons(source, user_id)
+local function hasEquippedWeapon(source)
     local currentWeapon = vRPclient.getWeapons(source)
-    for wname, wammo in pairs(currentWeapon) do
-        if wammo.ammo and wammo.ammo > 0 then
-            local ammoItem = ammoTable and ammoTable[wname] or nil
-            if ammoItem then
-                vRP.giveInventoryItem(user_id, ammoItem, wammo.ammo, true)
-            end
-        end
-    end
-
-    vRPclient._replaceWeapons(source, {})
-    TriggerClientEvent("inventory:UnequipWeapon", source)
+    return currentWeapon and next(currentWeapon) ~= nil
 end
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- OBJECTS
@@ -329,7 +319,10 @@ function src.useItem(slot, amount)
 
                         if itemType == "usar" then 
 							func:setCooldown(user_id, "inventario", 2)
-							autoUnequipWeapons(source, user_id)
+							if hasEquippedWeapon(source) then
+								TriggerClientEvent("Notify", source, "negado", "Guarde a arma antes de usar este item.")
+								return
+							end
 
                             if item == "mochila" then
                                 local maxMochila = {}
@@ -705,7 +698,10 @@ elseif item == "chave_algemas" then
 
 						if itemType == "beber" then
 							func:setCooldown(user_id, "inventario", 5)
-							autoUnequipWeapons(source, user_id)
+							if hasEquippedWeapon(source) then
+								TriggerClientEvent("Notify", source, "negado", "Guarde a arma antes de beber.")
+								return
+							end
 
 							local fome,sede = vRP.itemFood(item)
 
@@ -742,7 +738,10 @@ elseif item == "chave_algemas" then
 
 						if itemType == "comer" then
 							func:setCooldown(user_id, "inventario", 5)
-							autoUnequipWeapons(source, user_id)
+							if hasEquippedWeapon(source) then
+								TriggerClientEvent("Notify", source, "negado", "Guarde a arma antes de comer.")
+								return
+							end
 
 							local fome,sede = vRP.itemFood(item)
 				
@@ -758,7 +757,10 @@ elseif item == "chave_algemas" then
 						if itemType == "bebera" then
 							local fome,sede = vRP.itemFood(item)
 							func:setCooldown(user_id, "inventario", 5)
-							autoUnequipWeapons(source, user_id)
+							if hasEquippedWeapon(source) then
+								TriggerClientEvent("Notify", source, "negado", "Guarde a arma antes de usar este item.")
+								return
+							end
 
 							TriggerClientEvent("progress",source, 10000)
 							play_drink(source, item, 10000)
@@ -774,7 +776,11 @@ elseif item == "chave_algemas" then
 
 						if itemType == "remedio" then
 							func:setCooldown(user_id, "inventario", 5)
-							autoUnequipWeapons(source, user_id)
+							if hasEquippedWeapon(source) then
+								TriggerClientEvent("Notify", source, "negado", "Guarde a arma antes de usar este item.")
+								return
+							end
+
 							if item == "bandagem" then
 
 								if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
