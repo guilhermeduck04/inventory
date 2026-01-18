@@ -1258,15 +1258,16 @@ end)
 
 -- Recebe o clique de remover munição da NUI
 RegisterNUICallback("removeAmmo", function(data, cb)
-    TriggerServerEvent("inventory:removeAmmo", data.item)
-    cb("ok")
+    TriggerServerEvent("inventory:removeAmmo", data.item, data.slot)
+    if cb then cb("ok") end
 end)
 
 -- Recebe o clique de ver serial da NUI
 RegisterNUICallback("checkSerial", function(data, cb)
-    TriggerServerEvent("inventory:checkSerial", data.item)
-    cb("ok")
+    TriggerServerEvent("inventory:checkSerial", data.item, data.slot)
+    if cb then cb("ok") end
 end)
+-- =========================================================
 
 RegisterNetEvent("inventory:checkWeaponTarget")
 AddEventHandler("inventory:checkWeaponTarget", function(policeSource)
@@ -1293,3 +1294,18 @@ function src.getAmmoInWeapon(weaponItem)
     local hash = GetHashKey(weaponName)
     return GetAmmoInPedWeapon(ped, hash)
 end
+
+-- =========================================================
+-- SET AMMO: ZERAR/SETAR MUNIÇÃO DA ARMA (para removeAmmo funcionar)
+-- =========================================================
+function src.setWeaponAmmo(weaponItem, ammo)
+    local ped = PlayerPedId()
+    local weaponName = normalizeWeaponName(weaponItem)
+    local hash = GetHashKey(weaponName)
+
+    ammo = tonumber(ammo) or 0
+
+    -- Zera a munição do ped pra essa arma
+    SetPedAmmo(ped, hash, ammo)
+end
+

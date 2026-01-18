@@ -258,6 +258,22 @@ function normalizeWeaponName(name){
   return name.toUpperCase();
 }
 
+window.addEventListener("message", function(event){
+  const data = event.data;
+  if(!data) return;
+
+  if(data.action === "showSerialBox"){
+    $("#serialValue").text(data.serial || "---");
+    $("#serialOwner").text(data.owner || "---");
+    $("#serialBox").stop(true,true).fadeIn(120);
+
+    clearTimeout(window.__serialTimer);
+    window.__serialTimer = setTimeout(() => {
+      $("#serialBox").fadeOut(150);
+    }, 4500);
+  }
+});
+
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
 /* SISTEMA DO INVENTARIO JOGADOR */
@@ -2133,18 +2149,18 @@ $(document).on("click", ".context-option", function() {
             break;
 
         case "removeAmmo":
-            $.post(`https://${GetParentResourceName()}/removeAmmo`, JSON.stringify({
-                item: normalizeWeaponName(item), // importante p/ W_ virar WEAPON_
-                slot: slot
-            }));
-            break;
+        $.post(`https://${GetParentResourceName()}/removeAmmo`, JSON.stringify({
+            item: normalizeWeaponName(item),
+            slot: slot
+        }));
+        break;
 
         case "checkSerial":
-            $.post(`https://${GetParentResourceName()}/checkSerial`, JSON.stringify({
-                item: normalizeWeaponName(item), // importante p/ W_ virar WEAPON_
-                slot: slot
-            }));
-            break;
+        $.post(`https://${GetParentResourceName()}/checkSerial`, JSON.stringify({
+            item: normalizeWeaponName(item),
+            slot: slot
+        }));
+        break;
     }
 
     closeContextMenu();
