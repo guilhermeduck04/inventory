@@ -246,3 +246,29 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 }
 .context-separator { height: 1px; background: rgba(255, 255, 255, 0.1); margin: 5px 0; }
 .weapon-only { display: none; }
+
+#serialBox{
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  width: 240px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+  z-index: 9999;
+}
+
+#serialBox .title{
+  font-size: 13px;
+  margin-bottom: 6px;
+  opacity: 0.95;
+}
+
+#serialBox .line{
+  margin-top: 4px;
+  opacity: 0.9;
+}

@@ -1,10 +1,9 @@
 local Tunnel = module("vrp","lib/Tunnel")
 local Proxy = module("vrp","lib/Proxy")
-vRP = Proxy.getInterface("vRP")
-vRPserver = Tunnel.getInterface("vRP","inventario")
 
+vRP = Proxy.getInterface("vRP")
 src = {}
-Tunnel.bindInterface("inventario",src)
+Tunnel.bindInterface("inventario", src)
 vSERVER = Tunnel.getInterface("inventario")
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -18,6 +17,18 @@ local myOrgChest = nil
 local myChestHouse = nil
 local myStore = nil
 local myRevistar = nil
+
+-- =========================================================
+-- HELPERS (NORMALIZAR W_ -> WEAPON_)
+-- =========================================================
+local function normalizeWeaponName(name)
+    if not name then return name end
+    name = tostring(name)
+    if name:sub(1,2) == "W_" then
+        return "WEAPON_" .. name:sub(3)
+    end
+    return name
+end
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- MOC
@@ -1138,15 +1149,15 @@ AddEventHandler("inventory:EquipWeapon", function(weaponName)
     SetCurrentPedWeapon(ped, hash, true)
 end)
 
--- VERIFICA SE A ARMA ESTÁ NA MÃO (Ajuda a evitar o bug de equipar infinito)
+-- =========================================================
+-- CHECK: ARMA NA MÃO
+-- =========================================================
 function src.checkWeaponInHand(weaponItem)
     local ped = PlayerPedId()
-    local currentHash = GetSelectedPedWeapon(ped)
-    local itemHash = GetHashKey(weaponItem)
-    
-    return currentHash == itemHash
+    local weaponName = normalizeWeaponName(weaponItem)
+    local inHand = GetSelectedPedWeapon(ped)
+    return inHand == GetHashKey(weaponName)
 end
-
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- SISTEMA DE RECARREGAR (LIMITE 250 BALAS)
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -1199,11 +1210,26 @@ CreateThread(function()
     end
 end)
 
--- AJUDA A LIMPAR A MÃO QUANDO DESEQUIPA
+-- =========================================================
+-- UNEQUIP: LIMPAR ARMA DA MÃO
+-- =========================================================
 RegisterNetEvent("inventory:UnequipWeapon")
 AddEventHandler("inventory:UnequipWeapon", function()
     local ped = PlayerPedId()
+    RemoveAllPedWeapons(ped, true)
     SetCurrentPedWeapon(ped, GetHashKey("WEAPON_UNARMED"), true)
+end)
+
+-- =========================================================
+-- SHOW SERIAL BOX NA NUI
+-- =========================================================
+RegisterNetEvent("inventory:showSerial")
+AddEventHandler("inventory:showSerial", function(serial, owner)
+    SendNUIMessage({
+        action = "showSerialBox",
+        serial = serial,
+        owner = owner
+    })
 end)
 
 -- EVENTO PARA FORÇAR A ARMA NA MÃO
@@ -1229,15 +1255,6 @@ AddEventHandler("inventory:ClientAddAmmo", function(weaponName, amount)
         MakePedReload(ped)
     end
 end)
-
--- VERIFICA SE A ARMA ESTÁ NA MÃO
-function src.checkWeaponInHand(weaponItem)
-    local ped = PlayerPedId()
-    local currentHash = GetSelectedPedWeapon(ped)
-    local itemHash = GetHashKey(weaponItem)
-    
-    return currentHash == itemHash
-end
 
 -- Recebe o clique de remover munição da NUI
 RegisterNUICallback("removeAmmo", function(data, cb)
@@ -1266,8 +1283,13 @@ AddEventHandler("inventory:checkWeaponTarget", function(policeSource)
         TriggerServerEvent("inventory:receiveWeaponCheck", policeSource, "Desarmado", 0)
     end
 end)
+
+-- =========================================================
+-- GET AMMO: MUNIÇÃO DA ARMA
+-- =========================================================
 function src.getAmmoInWeapon(weaponItem)
     local ped = PlayerPedId()
-    local hash = GetHashKey(weaponItem)
+    local weaponName = normalizeWeaponName(weaponItem)
+    local hash = GetHashKey(weaponName)
     return GetAmmoInPedWeapon(ped, hash)
 end

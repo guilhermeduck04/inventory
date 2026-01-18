@@ -250,147 +250,13 @@ $(document).ready(function () {
     });
 });
 
-/* ---------------------------------------------------------------------------------------
-   SISTEMA DE MENU DE CONTEXTO (CORRIGIDO)
---------------------------------------------------------------------------------------- */
-// Fecha o menu se o inventário for fechado pelo NUI
-window.addEventListener("message", function (event) {
-    if (event.data.action == "hideMenu" || event.data.action == "close") {
-        $("#context-menu").hide();
-    }
-});
 
-$(document).keyup(function(e) {
-    if (e.key === "Escape") {
-        $("#context-menu").hide();
-        selectedItemData = null;
-    }
-});
-
-/* ---------------------------------------------------------------------------------------
-   SISTEMA DE MENU DE CONTEXTO (CORRIGIDO E TESTADO)
---------------------------------------------------------------------------------------- */
-let selectedItemData = null; // Variável global para guardar o item selecionado
-
-// Listener para abrir o menu com Botão Direito
-$(document).on("contextmenu", ".item", function(e) {
-    e.preventDefault(); // Impede o menu padrão do Windows
-
-    // Tenta pegar os dados do item clicado
-    // IMPORTANTE: Seu HTML usa data-item-key, não data-item
-    const itemKey = $(this).data("item-key");
-    const slot = $(this).data("slot");
-    const amount = $(this).data("amount");
-
-    // [BLINDAGEM] Se clicou num slot vazio ou sem item, não faz nada
-    if (!itemKey || itemKey === undefined) {
-        $("#context-menu").hide();
-        return;
-    }
-
-    // Salva os dados para usarmos depois
-    selectedItemData = { 
-        item: itemKey, 
-        slot: slot, 
-        amount: amount 
-    };
-
-    // [DEBUG] Mostra no console (F8) o que você clicou, ajuda a ver se tá pegando certo
-    // console.log("Abriu menu para:", itemKey);
-
-    // Lógica para mostrar opções de arma
-    let isWeapon = false;
-    if (itemKey) {
-        let name = itemKey.toString().toLowerCase();
-        if (name.includes("weapon_") || name.startsWith("w_")) {
-            isWeapon = true;
-        }
-    }
-
-    if (isWeapon) {
-        $(".weapon-only").show();
-    } else {
-        $(".weapon-only").hide();
-    }
-
-    // Cálculos para o menu não sair da tela
-    let top = e.clientY;
-    let left = e.clientX;
-    
-    // Se passar da largura/altura da tela, ajusta
-    if (left + 180 > window.innerWidth) left = window.innerWidth - 190;
-    if (top + 200 > window.innerHeight) top = window.innerHeight - 210;
-
-    // Mostra o menu na posição correta
-    $("#context-menu").css({
-        "display": "block",
-        "top": top + "px",
-        "left": left + "px"
-    });
-});
-
-$(document).on("click", function(e) {
-    // Se o clique não foi DENTRO do menu, fecha ele
-    if (!$(e.target).closest("#context-menu").length) {
-        $("#context-menu").hide();
-    }
-});
-
-// Ações do menu
-$(".context-option").on("click", function() {
-    // Pega qual ação foi clicada (data-action="use", etc)
-    const action = $(this).data("action");
-    
-    // Se não tiver item selecionado (por algum bug), para
-    if (!selectedItemData || !selectedItemData.item) return;
-
-    // Executa a ação
-    switch(action) {
-        case "use":
-            // Envia para o servidor usar o item
-            $.post("http://inventario/useItem", JSON.stringify({
-                item: selectedItemData.item,
-                slot: selectedItemData.slot,
-                amount: 1 // Usa 1 por padrão
-            }));
-            break;
-
-        case "drop":
-            // Dropa o item
-            $.post("http://inventario/dropItem", JSON.stringify({
-                item: selectedItemData.item,
-                slot: selectedItemData.slot,
-                amount: parseInt(selectedItemData.amount) // Dropa tudo ou ajuste se quiser perguntar qtd
-            }));
-            break;
-
-        case "send":
-            // Para enviar, geralmente precisa abrir um input de ID. 
-            // Se ainda não tiver, deixe comentado ou implemente depois.
-             $.post("http://inventario/sendItem", JSON.stringify({
-                item: selectedItemData.item,
-                slot: selectedItemData.slot,
-                amount: parseInt(selectedItemData.amount)
-            }));
-            break;
-            
-        case "removeAmmo":
-             $.post("http://inventario/removeAmmo", JSON.stringify({
-                item: selectedItemData.item
-            }));
-            break;
-
-        case "checkSerial":
-             $.post("http://inventario/checkSerial", JSON.stringify({
-                item: selectedItemData.item
-            }));
-            break;
-    }
-
-    // Fecha o menu e limpa a seleção
-    $("#context-menu").hide();
-    selectedItemData = null;
-});
+function normalizeWeaponName(name){
+  if(!name) return name;
+  name = name.toString();
+  if(name.toUpperCase().startsWith("W_")) return "WEAPON_" + name.substring(2);
+  return name.toUpperCase();
+}
 
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
@@ -2126,69 +1992,160 @@ window.addEventListener("offline", function () {
     $.post("http://inventario/invClose", JSON.stringify({}));
 });
 
+/* ---------------------------------------------------------------------------------------
+   SISTEMA DE MENU DE CONTEXTO (ÚNICO / LIMPO / COM VER SERIAL)
+--------------------------------------------------------------------------------------- */
+let selectedItemData = null; // Guarda item/slot/amount selecionado
+
+function normalizeWeaponName(name){
+    if(!name) return name;
+    name = name.toString().toUpperCase();
+    if(name.startsWith("W_")) return "WEAPON_" + name.substring(2);
+    return name;
+}
+
+function isWeaponItem(name){
+    if(!name) return false;
+    const n = name.toString().toLowerCase();
+    return n.includes("weapon_") || n.startsWith("w_");
+}
+
+function closeContextMenu(){
+    $("#context-menu").hide();
+    selectedItemData = null;
+}
+
+function openContextMenu(x, y){
+    // Ajuste para não sair da tela
+    const menu = $("#context-menu");
+    const menuWidth = menu.outerWidth() || 180;
+    const menuHeight = menu.outerHeight() || 200;
+
+    let left = x;
+    let top = y;
+
+    if (left + menuWidth + 10 > window.innerWidth) left = window.innerWidth - menuWidth - 10;
+    if (top + menuHeight + 10 > window.innerHeight) top = window.innerHeight - menuHeight - 10;
+
+    menu.css({
+        display: "block",
+        top: top + "px",
+        left: left + "px"
+    });
+}
+
+/* ----------------------------
+   FECHAR POR EVENTOS DO NUI
+----------------------------- */
+window.addEventListener("message", function (event) {
+    if (event.data && (event.data.action === "hideMenu" || event.data.action === "close")) {
+        closeContextMenu();
+    }
+
+    // Se você implementar a resposta do serial aqui, deixe este listener também no seu script:
+    // if (event.data && event.data.action === "showSerialBox") { ... }
+});
+
+/* ----------------------------
+   FECHAR COM ESC
+----------------------------- */
+$(document).on("keyup", function(e) {
+    if (e.key === "Escape") {
+        closeContextMenu();
+    }
+});
+
+/* ----------------------------
+   ABRIR COM BOTÃO DIREITO
+----------------------------- */
 $(document).on("contextmenu", ".item", function(e) {
     e.preventDefault();
 
-    let itemData = { 
-        key: $(this).data('item-key'), 
-        slot: $(this).data('slot'),
-        amount: $(this).data('amount')
-    };
+    const itemKey = $(this).data("item-key");
+    const slot = $(this).data("slot");
+    const amount = $(this).data("amount");
 
-    if (itemData.key === undefined) return;
-
-    selectedItemData = itemData;
-
-    // [FIX] Pega a posição correta do mouse na janela
-    let x = e.clientX;
-    let y = e.clientY;
-
-    // Mostra o menu
-    $(".context-menu").css({
-        display: "flex",
-        top: y + "px",
-        left: x + "px"
-    });
-});
-
-// Fechar ao clicar fora
-$(document).click(function() {
-    $(".context-menu").hide();
-});
-
-// Ação ao clicar nas opções do menu
-$(".context-option").on("click", function() {
-    const action = $(this).data("action");
-    
-    if (!selectedItemData) return;
-
-    if (action === "use") {
-        // Função original de usar
-        $.post("http://inventario/useItem", JSON.stringify({
-            item: selectedItemData.item,
-            slot: selectedItemData.slot,
-            amount: 1
-        }));
-    } else if (action === "drop") {
-        // Abre modal de dropar ou dropa 1 direto (você escolhe)
-        $.post("http://inventario/dropItem", JSON.stringify({
-            item: selectedItemData.item,
-            slot: selectedItemData.slot,
-            amount: selectedItemData.amount 
-        }));
-    } else if (action === "send") {
-        // Lógica de enviar (precisa implementar modal de ID depois)
-    } else if (action === "removeAmmo") {
-        // NOVA FUNÇÃO: Remover Munição
-        $.post("http://inventario/removeAmmo", JSON.stringify({
-            item: selectedItemData.item
-        }));
-    } else if (action === "checkSerial") {
-        // NOVA FUNÇÃO: Ver Serial
-        $.post("http://inventario/checkSerial", JSON.stringify({
-            item: selectedItemData.item
-        }));
+    // Se clicou em slot vazio, não abre
+    if (!itemKey || itemKey === undefined) {
+        closeContextMenu();
+        return;
     }
 
-    $("#context-menu").hide();
+    selectedItemData = {
+        item: itemKey,
+        slot: slot,
+        amount: parseInt(amount) || 1
+    };
+
+    // Mostra opções exclusivas de arma
+    if (isWeaponItem(itemKey)) {
+        $(".weapon-only").show();
+    } else {
+        $(".weapon-only").hide();
+    }
+
+    openContextMenu(e.clientX, e.clientY);
+});
+
+/* ----------------------------
+   FECHAR AO CLICAR FORA
+----------------------------- */
+$(document).on("mousedown", function(e) {
+    if (!$(e.target).closest("#context-menu").length) {
+        closeContextMenu();
+    }
+});
+
+/* ----------------------------
+   AÇÕES DO MENU
+----------------------------- */
+$(document).on("click", ".context-option", function() {
+    const action = $(this).data("action");
+    if (!selectedItemData || !selectedItemData.item) return;
+
+    const item = selectedItemData.item;
+    const slot = selectedItemData.slot;
+    const amount = selectedItemData.amount;
+
+    switch(action) {
+        case "use":
+            $.post(`https://${GetParentResourceName()}/useItem`, JSON.stringify({
+                item: item,
+                slot: slot,
+                amount: 1
+            }));
+            break;
+
+        case "drop":
+            $.post(`https://${GetParentResourceName()}/dropItem`, JSON.stringify({
+                item: item,
+                slot: slot,
+                amount: amount
+            }));
+            break;
+
+        case "send":
+            $.post(`https://${GetParentResourceName()}/sendItem`, JSON.stringify({
+                item: item,
+                slot: slot,
+                amount: amount
+            }));
+            break;
+
+        case "removeAmmo":
+            $.post(`https://${GetParentResourceName()}/removeAmmo`, JSON.stringify({
+                item: normalizeWeaponName(item), // importante p/ W_ virar WEAPON_
+                slot: slot
+            }));
+            break;
+
+        case "checkSerial":
+            $.post(`https://${GetParentResourceName()}/checkSerial`, JSON.stringify({
+                item: normalizeWeaponName(item), // importante p/ W_ virar WEAPON_
+                slot: slot
+            }));
+            break;
+    }
+
+    closeContextMenu();
 });

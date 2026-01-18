@@ -16,6 +16,23 @@ vTASKBAR = Tunnel.getInterface('taskbar')
 vCLIENT = Tunnel.getInterface("inventario")
 
 local func = exports["vrp"]
+
+
+local function normalizeWeaponName(name)
+    if not name then return name end
+    name = tostring(name)
+    if name:sub(1,2) == "W_" then
+        return "WEAPON_" .. name:sub(3)
+    end
+    return name
+end
+
+local function isWeaponItem(name)
+    if not name then return false end
+    name = tostring(name)
+    return (name:sub(1,7) == "WEAPON_") or (name:sub(1,2) == "W_")
+end
+
 -------------------------------------------------------------------------------------------------------------------------------------------
 -- VARIAVEIS
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -756,62 +773,82 @@ if itemType == "equipar" then
 	updateHotbar(source)
 end
 
-function src.droparItem(slot,amount)
-	local source = source
-	local user_id = vRP.getUserId(source)
-	if user_id then
-		local status,time = func:getCooldown(user_id, "drop")
+function src.droparItem(slot, amount)
+    local source = source
+    local user_id = vRP.getUserId(source)
+    if not user_id then return end
 
-		if GetPlayerRoutingBucket(source) ~= 0 then
-			TriggerClientEvent( "Notify", source, "negado", "Você não pode item agora." )
-			return
-		end
+    local status, time = func:getCooldown(user_id, "drop")
 
-		if status then
-			func:setCooldown(user_id, "drop", 2)
+    if GetPlayerRoutingBucket(source) ~= 0 then
+        TriggerClientEvent("Notify", source, "negado", "Você não pode dropar item agora.")
+        return
+    end
 
-			local inv = vRP.getInventory(user_id)
-			if inv then
-				if not inv[tostring(slot)] or inv[tostring(slot)].item == nil then
-					return
-				end
+    if not status then
+        TriggerClientEvent("Notify", source, "negado", "Aguarde <b>" .. time .. " segundo(s)</b> para utilizar isso novamente.")
+        updateHotbar(source)
+        return
+    end
 
-				local itemName = inv[tostring(slot)].item
+    func:setCooldown(user_id, "drop", 2)
 
-						if vRP.tryGetInventoryItem(user_id,itemName, parseInt(amount), true, slot) then
-							if itemName:sub(1, 7) == "WEAPON_" or itemName:sub(1, 2) == "W_" then
-								local isEquipped = vCLIENT.checkWeaponInHand(source, itemName)
-								if isEquipped then
-									-- Devolve munição antes de desequipar
-									local currentAmmo = vRPclient.getAmmoInWeapon(source, itemName)
-									if currentAmmo > 0 then
-										local ammoItem = ammoTable[itemName]
-										if ammoItem then
-											vRP.giveInventoryItem(user_id, ammoItem, currentAmmo, true)
-										end
-									end
-									vRPclient._replaceWeapons(source, {})
-									TriggerClientEvent("inventory:UnequipWeapon", source)
-								end
-							end
-						TriggerClientEvent("inventory:NotifyItem",source, itemName, vRP.getItemName(itemName), amount, "removido")
-						vRPclient._playAnim(source,true,{{"pickup_object","pickup_low"}},false)
-						src.createDropItem(itemName,parseInt(amount),source)
-						vCLIENT.updateInventory(source, "updateMochila")
+    local inv = vRP.getInventory(user_id)
+    if not inv then
+        updateHotbar(source)
+        return
+    end
 
-					local nplayer = vRP.getNearestPlayer(source, 15)
-					if nplayer then
-						vCLIENT.updateInventory(nplayer, "updateMochila")
-					end
+    local sSlot = tostring(slot)
+    if not inv[sSlot] or inv[sSlot].item == nil then
+        updateHotbar(source)
+        return
+    end
 
-					vRP.sendLog("DROPAR", "O ID "..user_id.." dropou o item "..vRP.getItemName(itemName).." na quantidade de "..amount.."x.")
-				end
-			end
-		else
-			TriggerClientEvent( "Notify", source, "negado", "Aguarde <b>" .. time .. " segundo(s)</b> para utilizar isso novamente." )
-		end
-	end
-	updateHotbar(source)
+    local itemName = inv[sSlot].item
+    local dropAmount = parseInt(amount)
+
+    -- ================================
+    -- PATCH: SE FOR ARMA EQUIPADA
+    -- - devolve munição corretamente
+    -- - desequipa antes de dropar
+    -- ================================
+    if isWeaponItem(itemName) then
+        local weaponName = normalizeWeaponName(itemName)
+
+        local equipped = vCLIENT.checkWeaponInHand(source, weaponName)
+        if equipped then
+            local currentAmmo = vRPclient.getAmmoInWeapon(source, weaponName) or 0
+
+            if currentAmmo > 0 then
+                local ammoItem = ammoTable and ammoTable[weaponName] or nil
+                if ammoItem then
+                    vRP.giveInventoryItem(user_id, ammoItem, currentAmmo, true)
+                end
+            end
+
+            vRPclient._replaceWeapons(source, {})
+            TriggerClientEvent("inventory:UnequipWeapon", source)
+        end
+    end
+
+    -- remove do inventário e cria o drop
+    if vRP.tryGetInventoryItem(user_id, itemName, dropAmount, true, sSlot) then
+        TriggerClientEvent("inventory:NotifyItem", source, itemName, vRP.getItemName(itemName), dropAmount, "removido")
+        vRPclient._playAnim(source, true, { { "pickup_object", "pickup_low" } }, false)
+
+        src.createDropItem(itemName, dropAmount, source)
+
+        vCLIENT.updateInventory(source, "updateMochila")
+        local nplayer = vRP.getNearestPlayer(source, 15)
+        if nplayer then
+            vCLIENT.updateInventory(nplayer, "updateMochila")
+        end
+
+        vRP.sendLog("DROPAR", "O ID " .. user_id .. " dropou o item " .. vRP.getItemName(itemName) .. " na quantidade de " .. dropAmount .. "x.")
+    end
+
+    updateHotbar(source)
 end
 
 function src.pegarItem(id,slot,amount)
@@ -2394,4 +2431,31 @@ AddEventHandler("inventory:receiveWeaponCheck", function(policeSource, weaponNam
                      "<b>Munição:</b> "..ammo
                      
     TriggerClientEvent("Notify", policeSource, "importante", mensagem, 10000)
+end)
+
+RegisterNUICallback("checkSerial", function(data, cb)
+    local source = source
+    local user_id = vRP.getUserId(source)
+    if not user_id then
+        if cb then cb("ok") end
+        return
+    end
+
+    local slot = tostring(data.slot or "")
+    local inv = vRP.getInventory(user_id) or {}
+
+    local serial = "N/A"
+    local owner = "N/A"
+
+    local entry = inv[slot]
+    if entry then
+        -- Ajuste esses campos conforme seu inventário salva metadados:
+        -- opções comuns: entry.serial, entry.owner, entry.info.serial, entry.info.owner
+        serial = entry.serial or (entry.info and entry.info.serial) or "N/A"
+        owner  = entry.owner  or (entry.info and entry.info.owner)  or "N/A"
+    end
+
+    TriggerClientEvent("inventory:showSerial", source, serial, owner)
+
+    if cb then cb("ok") end
 end)
