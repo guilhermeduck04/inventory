@@ -299,11 +299,18 @@ $(document).on("contextmenu", ".item", function(e) {
     // console.log("Abriu menu para:", itemKey);
 
     // Lógica para mostrar opções de arma
-    // Usamos .toString() para garantir que é texto antes do toUpperCase
-    if (itemKey && (itemKey.toString().toUpperCase().indexOf("WEAPON_") !== -1 || itemKey.toString().toUpperCase().indexOf("W_") !== -1)) {
-        $(".weapon-only").attr("style", "display: block !important");
+    let isWeapon = false;
+    if (itemKey) {
+        let name = itemKey.toString().toLowerCase();
+        if (name.includes("weapon_") || name.startsWith("w_")) {
+            isWeapon = true;
+        }
+    }
+
+    if (isWeapon) {
+        $(".weapon-only").show();
     } else {
-        $(".weapon-only").attr("style", "display: none !important");
+        $(".weapon-only").hide();
     }
 
     // Cálculos para o menu não sair da tela

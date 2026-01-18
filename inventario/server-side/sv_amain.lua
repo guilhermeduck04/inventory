@@ -599,16 +599,35 @@ if itemType == "equipar" then
 	                            -- Verifica no cliente se a arma JÁ está na mão (Toggle)
 	                            local isEquipped = vCLIENT.checkWeaponInHand(source, item)
 	
-	                            if isEquipped then
-	                                -- --- DESEQUIPAR (GUARDAR) ---
-	                                vRPclient._replaceWeapons(source, {}) -- Limpa a mão
-	                                TriggerClientEvent("inventory:UnequipWeapon", source) -- Garante animação
-	                                TriggerClientEvent("Notify",source,"azul","Arma <b>guardada</b>.")
-	                            else
-	                                -- --- EQUIPAR (PUXAR / TROCAR) ---
-	                                if vRP.getInventoryItemAmount(user_id, item) >= 1 then
-	                                    -- Limpa a mão antes de dar a nova arma (Troca Rápida)
-	                                    vRPclient._replaceWeapons(source, {})
+		                            if isEquipped then
+		                                -- --- DESEQUIPAR (GUARDAR) ---
+										-- Devolve munição ao guardar
+										local currentAmmo = vRPclient.getAmmoInWeapon(source, item)
+										if currentAmmo > 0 then
+											local ammoItem = ammoTable[item]
+											if ammoItem then
+												vRP.giveInventoryItem(user_id, ammoItem, currentAmmo, true)
+												TriggerClientEvent("Notify",source,"sucesso","Você guardou <b>"..currentAmmo.."x</b> balas.")
+											end
+										end
+		                                vRPclient._replaceWeapons(source, {}) -- Limpa a mão
+		                                TriggerClientEvent("inventory:UnequipWeapon", source) -- Garante animação
+		                                TriggerClientEvent("Notify",source,"azul","Arma <b>guardada</b>.")
+		                            else
+		                                -- --- EQUIPAR (PUXAR / TROCAR) ---
+		                                if vRP.getInventoryItemAmount(user_id, item) >= 1 then
+		                                    -- Limpa a mão antes de dar a nova arma (Troca Rápida)
+											-- [NOVO] Tenta devolver munição da arma que estava na mão antes de limpar
+											local currentWeapon = vRPclient.getWeapons(source) -- Pega o que está na mão
+											for wname, wammo in pairs(currentWeapon) do
+												if wammo.ammo > 0 then
+													local ammoItem = ammoTable[wname]
+													if ammoItem then
+														vRP.giveInventoryItem(user_id, ammoItem, wammo.ammo, true)
+													end
+												end
+											end
+		                                    vRPclient._replaceWeapons(source, {})
 	                                    
 	                                    local weapons = {}
 	                                    weapons[item] = { ammo = 0 } -- Vem sem munição (recarrega com R)
@@ -763,6 +782,14 @@ function src.droparItem(slot,amount)
 							if itemName:sub(1, 7) == "WEAPON_" or itemName:sub(1, 2) == "W_" then
 								local isEquipped = vCLIENT.checkWeaponInHand(source, itemName)
 								if isEquipped then
+									-- Devolve munição antes de desequipar
+									local currentAmmo = vRPclient.getAmmoInWeapon(source, itemName)
+									if currentAmmo > 0 then
+										local ammoItem = ammoTable[itemName]
+										if ammoItem then
+											vRP.giveInventoryItem(user_id, ammoItem, currentAmmo, true)
+										end
+									end
 									vRPclient._replaceWeapons(source, {})
 									TriggerClientEvent("inventory:UnequipWeapon", source)
 								end
@@ -866,6 +893,14 @@ function src.sendItem(item,slot,amount)
 								if item:sub(1, 7) == "WEAPON_" or item:sub(1, 2) == "W_" then
 									local isEquipped = vCLIENT.checkWeaponInHand(source, item)
 									if isEquipped then
+										-- Devolve munição antes de desequipar
+										local currentAmmo = vRPclient.getAmmoInWeapon(source, item)
+										if currentAmmo > 0 then
+											local ammoItem = ammoTable[item]
+											if ammoItem then
+												vRP.giveInventoryItem(user_id, ammoItem, currentAmmo, true)
+											end
+										end
 										vRPclient._replaceWeapons(source, {})
 										TriggerClientEvent("inventory:UnequipWeapon", source)
 									end
@@ -1053,14 +1088,22 @@ function src.colocarVehicle(item,amount,slot,mPlate,mName)
 			if openedVehicle[mPlaca] == user_id and dataVehicle[mPlaca][1] ~= nil then
 				if vRP.computeItemsWeight(dataVehicle[mPlaca][1])+vRP.getItemWeight(item)*parseInt(amount) <= VehicleChest(mName) then
 					
-							if vRP.tryGetInventoryItem(user_id, item, amount, true) then
-								if item:sub(1, 7) == "WEAPON_" or item:sub(1, 2) == "W_" then
-									local isEquipped = vCLIENT.checkWeaponInHand(source, item)
-									if isEquipped then
-										vRPclient._replaceWeapons(source, {})
-										TriggerClientEvent("inventory:UnequipWeapon", source)
+								if vRP.tryGetInventoryItem(user_id, item, amount, true) then
+									if item:sub(1, 7) == "WEAPON_" or item:sub(1, 2) == "W_" then
+										local isEquipped = vCLIENT.checkWeaponInHand(source, item)
+										if isEquipped then
+											-- Devolve munição antes de desequipar
+											local currentAmmo = vRPclient.getAmmoInWeapon(source, item)
+											if currentAmmo > 0 then
+												local ammoItem = ammoTable[item]
+												if ammoItem then
+													vRP.giveInventoryItem(user_id, ammoItem, currentAmmo, true)
+												end
+											end
+											vRPclient._replaceWeapons(source, {})
+											TriggerClientEvent("inventory:UnequipWeapon", source)
+										end
 									end
-								end
 							dataVehicle[mPlaca][1][tostring(slot)] =  { amount = amount, item = item }
 						end
 
