@@ -14,6 +14,7 @@ config.items = {
 	["foguete"] = { "Foguete", "usar", 1.0, nil, nil},
 	["megaphone"] = { "Megaphone", "usar", 1.0, nil, nil},
 	["cartaodeacesso"] = { "Cartão de Acesso", "none", 1.0, nil, nil},
+	["police_weapon_token"] = { "Arma de Serviço (Polícia)", "usar", 0.1, nil, nil},
 
 	["suspensaoar"] = { "Kit Suspensão", "usar", 4.0, nil, nil},
 	["moduloneon"] = { "Módulo Neon", "usar", 4.0, nil, nil},

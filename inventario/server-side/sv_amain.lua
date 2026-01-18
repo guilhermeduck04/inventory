@@ -33,6 +33,89 @@ local function isWeaponItem(name)
     return (name:sub(1,7) == "WEAPON_") or (name:sub(1,2) == "W_")
 end
 
+local DUTY_TOKEN_ITEM = "police_weapon_token"
+
+local function getItemMetadata(slotData)
+    if not slotData then return nil end
+    return slotData.metadata or slotData.meta or slotData.info or slotData.data
+end
+
+local function getItemSlotData(user_id, slot)
+    if not user_id or not slot then return nil end
+    local inv = vRP.getInventory(user_id)
+    if not inv then return nil end
+    local data = inv[tostring(slot)]
+    if not data or not data.item then return nil end
+    return {
+        item = data.item,
+        amount = parseInt(data.amount or 1),
+        slot = tostring(slot),
+        metadata = getItemMetadata(data)
+    }
+end
+
+function src.GetItemBySlot(target, slot)
+    local user_id = vRP.getUserId(target)
+    if not user_id then return nil end
+    return getItemSlotData(user_id, slot)
+end
+
+function src.RemoveItemBySlot(target, slot, amount)
+    local user_id = vRP.getUserId(target)
+    if not user_id or not slot then return false end
+    local itemData = getItemSlotData(user_id, slot)
+    if not itemData then return false end
+    local removeAmount = parseInt(amount or itemData.amount or 1)
+    return vRP.tryGetInventoryItem(user_id, itemData.item, removeAmount, true, tostring(slot))
+end
+
+function src.AddItem(target, itemName, amount, metadata)
+    local user_id = vRP.getUserId(target)
+    if not user_id or not itemName then return false end
+    local giveAmount = parseInt(amount or 1)
+    vRP.giveInventoryItem(user_id, itemName, giveAmount, true, nil, metadata)
+    return true
+end
+
+local function isDutyTokenMeta(meta, user_id)
+    return meta
+        and meta.duty == true
+        and meta.nonTransferable == true
+        and meta.job == "police"
+        and meta.issuedTo == user_id
+        and meta.serial ~= nil
+        and meta.weapon ~= nil
+end
+
+local function handleDutyTokenTransfer(ownerSource, actorSource, user_id, itemName, slot, action, destination)
+    if itemName ~= DUTY_TOKEN_ITEM then return false end
+    local removed = false
+    if slot then
+        local slotData = getItemSlotData(user_id, slot)
+        if slotData and slotData.item == DUTY_TOKEN_ITEM and isDutyTokenMeta(slotData.metadata, user_id) then
+            vRP.tryGetInventoryItem(user_id, DUTY_TOKEN_ITEM, slotData.amount, true, slotData.slot)
+            TriggerEvent("zr_arsenal:tokenTransferAttempt", ownerSource, actorSource, slotData.metadata, action, destination)
+            removed = true
+        end
+    else
+        local inv = vRP.getInventory(user_id)
+        if inv then
+            for invSlot, data in pairs(inv) do
+                if data.item == DUTY_TOKEN_ITEM then
+                    local meta = getItemMetadata(data)
+                    if isDutyTokenMeta(meta, user_id) then
+                        local amount = parseInt(data.amount or 1)
+                        vRP.tryGetInventoryItem(user_id, DUTY_TOKEN_ITEM, amount, true, tostring(invSlot))
+                        TriggerEvent("zr_arsenal:tokenTransferAttempt", ownerSource, actorSource, meta, action, destination)
+                        removed = true
+                    end
+                end
+            end
+        end
+    end
+    return removed
+end
+
 -------------------------------------------------------------------------------------------------------------------------------------------
 -- VARIAVEIS
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -321,6 +404,19 @@ function src.useItem(slot, amount)
 							func:setCooldown(user_id, "inventario", 2)
 							if hasEquippedWeapon(source) then
 								TriggerClientEvent("Notify", source, "negado", "Guarde a arma antes de usar este item.")
+								return
+							end
+
+							if item == DUTY_TOKEN_ITEM then
+								local slotData = getItemSlotData(user_id, slot)
+								if not slotData or not slotData.metadata then
+									TriggerClientEvent("Notify", source, "negado", "Token inválido.")
+									return
+								end
+
+								TriggerEvent("zr_arsenal:equipToken", source, slotData.metadata)
+								vCLIENT.updateInventory(source, "updateMochila")
+								updateHotbar(source)
 								return
 							end
 
@@ -860,6 +956,13 @@ function src.droparItem(slot, amount)
     local itemName = inv[sSlot].item
     local dropAmount = parseInt(amount)
 
+	if handleDutyTokenTransfer(source, source, user_id, itemName, sSlot, "drop", "ground") then
+		TriggerClientEvent("Notify", source, "negado", "Você não pode dropar este item.")
+		vCLIENT.updateInventory(source, "updateMochila")
+		updateHotbar(source)
+		return
+	end
+
     -- ================================
     -- PATCH: SE FOR ARMA EQUIPADA
     -- - devolve munição corretamente
@@ -972,6 +1075,12 @@ function src.sendItem(item,slot,amount)
 
 			if amount == nil or amount <= 0 then
 				amount = vRP.getInventoryItemAmount(user_id, item)
+			end
+
+			if handleDutyTokenTransfer(source, source, user_id, item, slot, "give", "player") then
+				TriggerClientEvent("Notify", source, "negado", "Você não pode transferir este item.")
+				vCLIENT.updateInventory(source, "updateMochila")
+				return
 			end
 
 			local nplayer = vRPclient.getNearestPlayer(source, 3)
@@ -1175,6 +1284,10 @@ function src.colocarVehicle(item,amount,slot,mPlate,mName)
 		if GetPlayerPing(source) > 0 then
 
 			if openedVehicle[mPlaca] == user_id and dataVehicle[mPlaca][1] ~= nil then
+				if handleDutyTokenTransfer(source, source, user_id, item, nil, "stash", "vehicle:"..mPlaca) then
+					TriggerClientEvent("Notify", source, "negado", "Você não pode guardar este item.")
+					return
+				end
 				if vRP.computeItemsWeight(dataVehicle[mPlaca][1])+vRP.getItemWeight(item)*parseInt(amount) <= VehicleChest(mName) then
 					
 								if vRP.tryGetInventoryItem(user_id, item, amount, true) then
@@ -1399,6 +1512,10 @@ function src.colocarOrgChest(item,amount,slot, org, maxBau, id)
 		if openedOrg[org] == user_id then
 
 			if vRP.computeItemsWeight(dataOrgChest[org][1])+vRP.getItemWeight(item)*parseInt(amount) <= maxBau then
+				if handleDutyTokenTransfer(source, source, user_id, item, nil, "stash", "org:"..org) then
+					TriggerClientEvent("Notify", source, "negado", "Você não pode guardar este item.")
+					return
+				end
 				if vRP.tryGetInventoryItem(user_id, item, amount, true) then
 					dataOrgChest[org][1][tostring(slot)] =  { amount = amount, item = item }
 
@@ -1610,6 +1727,10 @@ function src.colocarHousehest(item,amount,slot, id)
 		if openedHouseChest[id] == user_id or vRP.hasPermission(user_id, "developer.permissao") then
 
 			if vRP.computeItemsWeight(dataHouseChest[id][1])+vRP.getItemWeight(item)*parseInt(amount) <= dataHouseChest[id][3] + 0.0 then
+				if handleDutyTokenTransfer(source, source, user_id, item, nil, "stash", "house:"..tostring(id)) then
+					TriggerClientEvent("Notify", source, "negado", "Você não pode guardar este item.")
+					return
+				end
 				if vRP.tryGetInventoryItem(user_id, item, amount, true) then
 					dataHouseChest[id][1][tostring(slot)] =  { amount = amount, item = item }
 				end
@@ -1979,6 +2100,13 @@ function src.retirarItemRevistar(id, item, target, amount, slot)
 						TriggerClientEvent("Notify",source,"negado","Você não pode pegar esse item de bandidos.")
 						return
 					end
+				end
+
+				if handleDutyTokenTransfer(nplayer, source, id, item, slot, "revistar", "player:"..tostring(user_id)) then
+					TriggerClientEvent("Notify", source, "negado", "Você não pode transferir este item.")
+					vCLIENT.updateInventory(source, "updateMochila")
+					vCLIENT.updateInventory(nplayer, "updateMochila")
+					return
 				end
 
 				if vRP.computeInvWeight(user_id)+vRP.getItemWeight(tostring(item))*parseInt(amount) <= vRP.getInventoryMaxWeight(user_id) then
