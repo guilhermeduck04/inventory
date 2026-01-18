@@ -120,6 +120,21 @@ local ammoTable = {
     -- OUTROS
     ["WEAPON_PETROLCAN"]        = "AMMO_PETROLCAN"
 }
+
+local function autoUnequipWeapons(source, user_id)
+    local currentWeapon = vRPclient.getWeapons(source)
+    for wname, wammo in pairs(currentWeapon) do
+        if wammo.ammo and wammo.ammo > 0 then
+            local ammoItem = ammoTable and ammoTable[wname] or nil
+            if ammoItem then
+                vRP.giveInventoryItem(user_id, ammoItem, wammo.ammo, true)
+            end
+        end
+    end
+
+    vRPclient._replaceWeapons(source, {})
+    TriggerClientEvent("inventory:UnequipWeapon", source)
+end
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- OBJECTS
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -314,6 +329,7 @@ function src.useItem(slot, amount)
 
                         if itemType == "usar" then 
 							func:setCooldown(user_id, "inventario", 2)
+							autoUnequipWeapons(source, user_id)
 
                             if item == "mochila" then
                                 local maxMochila = {}
@@ -689,6 +705,7 @@ elseif item == "chave_algemas" then
 
 						if itemType == "beber" then
 							func:setCooldown(user_id, "inventario", 5)
+							autoUnequipWeapons(source, user_id)
 
 							local fome,sede = vRP.itemFood(item)
 
@@ -725,6 +742,7 @@ elseif item == "chave_algemas" then
 
 						if itemType == "comer" then
 							func:setCooldown(user_id, "inventario", 5)
+							autoUnequipWeapons(source, user_id)
 
 							local fome,sede = vRP.itemFood(item)
 				
@@ -740,6 +758,7 @@ elseif item == "chave_algemas" then
 						if itemType == "bebera" then
 							local fome,sede = vRP.itemFood(item)
 							func:setCooldown(user_id, "inventario", 5)
+							autoUnequipWeapons(source, user_id)
 
 							TriggerClientEvent("progress",source, 10000)
 							play_drink(source, item, 10000)
@@ -755,6 +774,7 @@ elseif item == "chave_algemas" then
 
 						if itemType == "remedio" then
 							func:setCooldown(user_id, "inventario", 5)
+							autoUnequipWeapons(source, user_id)
 							if item == "bandagem" then
 
 								if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
