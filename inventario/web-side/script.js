@@ -300,10 +300,10 @@ $(document).on("contextmenu", ".item", function(e) {
 
     // Lógica para mostrar opções de arma
     // Usamos .toString() para garantir que é texto antes do toUpperCase
-    if (itemKey && itemKey.toString().toUpperCase().indexOf("WEAPON_") !== -1) {
-        $(".weapon-only").show();
+    if (itemKey && (itemKey.toString().toUpperCase().indexOf("WEAPON_") !== -1 || itemKey.toString().toUpperCase().indexOf("W_") !== -1)) {
+        $(".weapon-only").attr("style", "display: block !important");
     } else {
-        $(".weapon-only").hide();
+        $(".weapon-only").attr("style", "display: none !important");
     }
 
     // Cálculos para o menu não sair da tela
