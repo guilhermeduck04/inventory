@@ -2126,36 +2126,34 @@ window.addEventListener("offline", function () {
     $.post("http://inventario/invClose", JSON.stringify({}));
 });
 
+// Listener para abrir o menu com Botão Direito
 $(document).on("contextmenu", ".item", function(e) {
-    e.preventDefault(); // Bloqueia o menu padrão do navegador
+    e.preventDefault(); // Impede o menu padrão do navegador
 
-    // Pega os dados do item clicado
-    const type = $(this).data("type"); // Você precisa ter data-type="weapon" no HTML do item
-    const item = $(this).data("item");
-    const slot = $(this).data("slot");
-    const amount = $(this).data("amount");
+    // Verifica se o item é válido e tem dados
+    let itemData = { 
+        key: $(this).data('item-key'), 
+        slot: $(this).data('slot'),
+        amount: $(this).data('amount'),
+        type: $(this).data('type') // Se houver tipo (arma, item, etc)
+    };
 
-    selectedItemData = { item, slot, amount, type };
+    if (itemData.key === undefined) return;
 
-    // Posiciona o menu onde o mouse está
-    $("#context-menu").css({
+    // Salva o item selecionado globalmente para as ações (Usar, Dropar, Enviar)
+    selectedItemData = itemData;
+
+    // Mostra o Menu de Contexto na posição do mouse
+    $(".context-menu").css({
+        display: "flex",
         top: e.pageY + "px",
-        left: e.pageX + "px",
-        display: "block"
+        left: e.pageX + "px"
     });
-
-    // Lógica para mostrar opções de arma
-    // Se o nome do item começar com "WEAPON_" ou for do tipo arma
-    if (item && item.toUpperCase().includes("WEAPON_")) {
-        $(".weapon-only").show();
-    } else {
-        $(".weapon-only").hide();
-    }
 });
 
-// Fecha o menu se clicar fora
-$(document).on("click", function() {
-    $("#context-menu").hide();
+// Fechar menu de contexto ao clicar fora
+$(document).click(function() {
+    $(".context-menu").hide();
 });
 
 // Ação ao clicar nas opções do menu
