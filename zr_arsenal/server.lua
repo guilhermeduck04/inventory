@@ -19,35 +19,14 @@ local ARSENAL_WEAPON_ITEMS = {
 	WEAPON_SPECIALCARBINE = true,
 	WEAPON_SMG = true,
 	WEAPON_COMBATPDW = true,
-	WEAPON_PUMPSHOTGUN_MK2 = true,
-	WEAPON_PISTOL_MK2 = true,
+	WEAPON_PUMPSHOTGUN_MK2 = false,
+	WEAPON_PISTOL_MK2 = false,
 	WEAPON_COMBATPISTOL = true,
 	WEAPON_NIGHTSTICK = true,
-	WEAPON_KNIFE = true,
+	WEAPON_KNIFE = false,
 	WEAPON_STUNGUN = true,
 	WEAPON_FLASHLIGHT = true
 }
-
-local ARSENAL_AMMO_ITEMS = {
-	AMMO_CARBINERIFLE = { max = 250 },
-	AMMO_SPECIALCARBINE = { max = 250 },
-	AMMO_SMG = { max = 250 },
-	AMMO_COMBATPDW = { max = 250 },
-	AMMO_PUMPSHOTGUN_MK2 = { max = 100 },
-	AMMO_PISTOL_MK2 = { max = 200 },
-	AMMO_COMBATPISTOL = { max = 200 }
-}
-
-local function buildArsenalMeta(user_id, itemName)
-	return {
-		arsenalDuty = true,
-		nonTransferable = true,
-		job = "police",
-		issuedTo = user_id,
-		issuedAt = os.time(),
-		serial = ("ARS-%s-%s"):format(itemName, math.random(1000, 9999))
-	}
-end
 
 local armas = {
 }
@@ -265,35 +244,6 @@ AddEventHandler("zr_arsenal:requestWeaponItem", function(weaponName)
 		return
 	end
 
-	vRP.giveInventoryItem(user_id, weaponName, 1, true, nil, buildArsenalMeta(user_id, weaponName))
+	vRP.giveInventoryItem(user_id, weaponName, 1, true)
 	LogDutyWeapon("arsenal_give_item", src, user_id, "N/A", "weapon=" .. weaponName)
-end)
-
-RegisterServerEvent("zr_arsenal:requestAmmoItem")
-AddEventHandler("zr_arsenal:requestAmmoItem", function(ammoName, amount)
-	local src = source
-	local user_id = vRP.getUserId(src)
-	if not user_id then return end
-
-	if not vRP.hasPermission(user_id, "policia.permissao") or not isPoliceOnDuty(user_id) then
-		TriggerClientEvent("Notify", src, "negado", "Você não está em serviço.")
-		return
-	end
-
-	if type(ammoName) ~= "string" or not ARSENAL_AMMO_ITEMS[ammoName] then
-		LogDutyWeapon("arsenal_ammo_denied", src, user_id, "N/A", "ammo-invalida")
-		return
-	end
-
-	local ammoConfig = ARSENAL_AMMO_ITEMS[ammoName]
-	local giveAmount = parseInt(amount or ammoConfig.max or 0)
-	if giveAmount <= 0 then
-		giveAmount = ammoConfig.max
-	end
-	if giveAmount > ammoConfig.max then
-		giveAmount = ammoConfig.max
-	end
-
-	vRP.giveInventoryItem(user_id, ammoName, giveAmount, true, nil, buildArsenalMeta(user_id, ammoName))
-	LogDutyWeapon("arsenal_give_ammo", src, user_id, "N/A", ("ammo=%s amount=%s"):format(ammoName, giveAmount))
 end)
