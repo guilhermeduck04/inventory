@@ -8,6 +8,7 @@ client = {}
 Tunnel.bindInterface("_arsenal",client)
 
 local inMenu = false
+local canOpenArsenal = true
 
 local arsenal = {   ---- CDS DOS ARSENAL 
 	{ 457.01, -996.63, 35.06 },
@@ -41,9 +42,13 @@ Citizen.CreateThread(function()
                     offset = 0.5
                 })
 
-                if distance <= 1.2 then
-                    if IsControlJustPressed(0,38) then -- Tecla E
-                        TriggerServerEvent('ndk:permissao')             
+                if distance <= 2.0 and canOpenArsenal and not inMenu then
+                    if IsControlJustReleased(0,38) then -- Tecla E
+                        canOpenArsenal = false
+                        TriggerServerEvent('ndk:permissao')
+                        SetTimeout(400, function()
+                            canOpenArsenal = true
+                        end)
                     end
                 end
             end
@@ -75,64 +80,56 @@ end)
 
 ---------------------- CALLBACKS DE ARMAS ----------------------
 
--- Função auxiliar
-local function EquiparArma(weaponName, ammo, removeWeapon)
-    local ped = PlayerPedId()
-    -- Removi o TriggerServerEvent('ndk:permissao') aqui para não resetar o menu
-    
-    if removeWeapon then
-        RemoveWeaponFromPed(ped, GetHashKey(removeWeapon))
-    end
-    
-    local hash = GetHashKey(weaponName)
-    GiveWeaponToPed(ped, hash, ammo, 0, 1)
-    SetPedAmmo(ped, hash, ammo)
-    
+local function SolicitarArmaInventario(weaponName)
+    TriggerServerEvent("zr_arsenal:requestWeaponItem", weaponName)
+    PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 1)
+end
+
+local function SolicitarMunicaoInventario(ammoName, amount)
+    TriggerServerEvent("zr_arsenal:requestAmmoItem", ammoName, amount)
     PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 1)
 end
 
 RegisterNUICallback('m4a1', function(data, cb)
-    EquiparArma("WEAPON_CARBINERIFLE", 200, "WEAPON_SPECIALCARBINE")
+    SolicitarArmaInventario("WEAPON_CARBINERIFLE")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('m4a4', function(data, cb)
-    EquiparArma("WEAPON_SPECIALCARBINE", 200, "WEAPON_CARBINERIFLE")
+    SolicitarArmaInventario("WEAPON_SPECIALCARBINE")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('mp5', function(data, cb)
-    EquiparArma("WEAPON_SMG", 200, "WEAPON_COMBATPDW")
+    SolicitarArmaInventario("WEAPON_SMG")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('mpx', function(data, cb)
-    EquiparArma("WEAPON_COMBATPDW", 200, "WEAPON_SMG")
+    SolicitarArmaInventario("WEAPON_COMBATPDW")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('shot45', function(data, cb)
-    EquiparArma("WEAPON_PUMPSHOTGUN_MK2", 100, nil)
+    SolicitarArmaInventario("WEAPON_PUMPSHOTGUN_MK2")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('fiveseven', function(data, cb)
-    EquiparArma("WEAPON_PISTOL_MK2", 250, "WEAPON_COMBATPISTOL")
+    SolicitarArmaInventario("WEAPON_PISTOL_MK2")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('glock18', function(data, cb)
-    EquiparArma("WEAPON_COMBATPISTOL", 250, "WEAPON_PISTOL_MK2")
+    SolicitarArmaInventario("WEAPON_COMBATPISTOL")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('KITBASICO', function(data, cb)
-    local ped = PlayerPedId()
-    -- Removi o TriggerServerEvent aqui também
-    GiveWeaponToPed(ped,GetHashKey("WEAPON_NIGHTSTICK"),0,0,0)
-    GiveWeaponToPed(ped,GetHashKey("WEAPON_KNIFE"),0,0,1)
-    GiveWeaponToPed(ped,GetHashKey("WEAPON_STUNGUN"),0,0,0)
-    GiveWeaponToPed(ped,GetHashKey("WEAPON_FLASHLIGHT"),0,0,0)
+    SolicitarArmaInventario("WEAPON_NIGHTSTICK")
+    SolicitarArmaInventario("WEAPON_KNIFE")
+    SolicitarArmaInventario("WEAPON_STUNGUN")
+    SolicitarArmaInventario("WEAPON_FLASHLIGHT")
     TriggerServerEvent('zr_arsenal:colete') -- Este mantém pois dá o colete
     
     PlaySoundFrontend(-1, "TOGGLE_ON", "HUD_FRONTEND_DEFAULT_SOUNDSET", 1)
@@ -140,22 +137,57 @@ RegisterNUICallback('KITBASICO', function(data, cb)
 end)
 
 RegisterNUICallback('Taser', function(data, cb)
-    EquiparArma("WEAPON_STUNGUN", 0, nil)
+    SolicitarArmaInventario("WEAPON_STUNGUN")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('Lanterna', function(data, cb)
-    EquiparArma("WEAPON_FLASHLIGHT", 0, nil)
+    SolicitarArmaInventario("WEAPON_FLASHLIGHT")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('KCT', function(data, cb)
-    EquiparArma("WEAPON_NIGHTSTICK", 0, nil)
+    SolicitarArmaInventario("WEAPON_NIGHTSTICK")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('Faca', function(data, cb)
-    EquiparArma("WEAPON_KNIFE", 0, nil)
+    SolicitarArmaInventario("WEAPON_KNIFE")
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_m4', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_CARBINERIFLE", 250)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_para', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_SPECIALCARBINE", 250)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_mp5', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_SMG", 250)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_mpx', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_COMBATPDW", 250)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_shot', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_PUMPSHOTGUN_MK2", 100)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_five', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_PISTOL_MK2", 200)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_glock', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_COMBATPISTOL", 200)
     if cb then cb('ok') end
 end)
 
