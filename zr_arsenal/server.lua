@@ -14,6 +14,20 @@ local DUTY_WEAPONS = {
 	{ token = "police_weapon_token", weapon = "WEAPON_STUNGUN" }
 }
 
+local ARSENAL_WEAPON_ITEMS = {
+	WEAPON_CARBINERIFLE = true,
+	WEAPON_SPECIALCARBINE = true,
+	WEAPON_SMG = true,
+	WEAPON_COMBATPDW = true,
+	WEAPON_PUMPSHOTGUN_MK2 = true,
+	WEAPON_PISTOL_MK2 = true,
+	WEAPON_COMBATPISTOL = true,
+	WEAPON_NIGHTSTICK = true,
+	WEAPON_KNIFE = true,
+	WEAPON_STUNGUN = true,
+	WEAPON_FLASHLIGHT = true
+}
+
 local armas = {
 }
 
@@ -212,4 +226,24 @@ AddEventHandler('zr_arsenal:colete', function()
 		vRPclient.setArmour(src,100)
 		vRP.setUData(user_id,"vRP:colete", json.encode(colete))
 	end
+end)
+
+RegisterServerEvent("zr_arsenal:requestWeaponItem")
+AddEventHandler("zr_arsenal:requestWeaponItem", function(weaponName)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	if not user_id then return end
+
+	if not vRP.hasPermission(user_id, "policia.permissao") or not isPoliceOnDuty(user_id) then
+		TriggerClientEvent("Notify", src, "negado", "Você não está em serviço.")
+		return
+	end
+
+	if type(weaponName) ~= "string" or not ARSENAL_WEAPON_ITEMS[weaponName] then
+		LogDutyWeapon("arsenal_denied", src, user_id, "N/A", "weapon-invalida")
+		return
+	end
+
+	vRP.giveInventoryItem(user_id, weaponName, 1, true)
+	LogDutyWeapon("arsenal_give_item", src, user_id, "N/A", "weapon=" .. weaponName)
 end)
