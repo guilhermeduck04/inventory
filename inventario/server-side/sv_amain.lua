@@ -116,6 +116,72 @@ local function handleDutyTokenTransfer(ownerSource, actorSource, user_id, itemNa
     return removed
 end
 
+local function isPoliceOnDuty(user_id)
+    if not user_id then return false end
+    if not vRP.hasPermission(user_id, "policia.permissao") then
+        return false
+    end
+    if vRP.checkPatrulhamento then
+        return vRP.checkPatrulhamento(user_id)
+    end
+    return false
+end
+
+local function isArsenalBoundMeta(meta, user_id)
+    return meta
+        and meta.arsenalDuty == true
+        and meta.nonTransferable == true
+        and meta.job == "police"
+        and meta.issuedTo == user_id
+end
+
+local function handleArsenalBoundTransfer(ownerSource, actorSource, user_id, itemName, slot, action, destination)
+    local removed = false
+
+    local function consumeSlot(slotData)
+        if not slotData then return end
+        if slotData.item ~= itemName then return end
+        if not isArsenalBoundMeta(slotData.metadata, user_id) then return end
+
+        vRP.tryGetInventoryItem(user_id, itemName, slotData.amount, true, slotData.slot)
+        TriggerClientEvent("Notify", actorSource or ownerSource, "negado", "Item de serviço evaporou ao tentar transferir.")
+        removed = true
+    end
+
+    if slot then
+        consumeSlot(getItemSlotData(user_id, slot))
+    else
+        local inv = vRP.getInventory(user_id)
+        if inv then
+            for invSlot, data in pairs(inv) do
+                if data.item == itemName then
+                    local slotData = {
+                        item = data.item,
+                        amount = parseInt(data.amount or 1),
+                        slot = tostring(invSlot),
+                        metadata = getItemMetadata(data)
+                    }
+                    consumeSlot(slotData)
+                end
+            end
+        end
+    end
+
+    return removed
+end
+
+local function handleProtectedTransfer(ownerSource, actorSource, user_id, itemName, slot, action, destination)
+    if handleDutyTokenTransfer(ownerSource, actorSource, user_id, itemName, slot, action, destination) then
+        return true
+    end
+
+    if handleArsenalBoundTransfer(ownerSource, actorSource, user_id, itemName, slot, action, destination) then
+        return true
+    end
+
+    return false
+end
+
 -------------------------------------------------------------------------------------------------------------------------------------------
 -- VARIAVEIS
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -737,6 +803,13 @@ elseif item == "chave_algemas" then
 
 							local weaponName = normalizeWeaponName(item)
 
+							local slotData = getItemSlotData(user_id, slot)
+							if slotData and isArsenalBoundMeta(slotData.metadata, user_id) and not isPoliceOnDuty(user_id) then
+								TriggerClientEvent("Notify", source, "negado", "Item de serviço só pode ser equipado em serviço.")
+								updateHotbar(source)
+								return
+							end
+
 							-- Toggle: já está na mão?
 							local isEquipped = vCLIENT.checkWeaponInHand(source, weaponName)
 
@@ -956,7 +1029,7 @@ function src.droparItem(slot, amount)
     local itemName = inv[sSlot].item
     local dropAmount = parseInt(amount)
 
-	if handleDutyTokenTransfer(source, source, user_id, itemName, sSlot, "drop", "ground") then
+	if handleProtectedTransfer(source, source, user_id, itemName, sSlot, "drop", "ground") then
 		TriggerClientEvent("Notify", source, "negado", "Você não pode dropar este item.")
 		vCLIENT.updateInventory(source, "updateMochila")
 		updateHotbar(source)
@@ -1077,7 +1150,7 @@ function src.sendItem(item,slot,amount)
 				amount = vRP.getInventoryItemAmount(user_id, item)
 			end
 
-			if handleDutyTokenTransfer(source, source, user_id, item, slot, "give", "player") then
+			if handleProtectedTransfer(source, source, user_id, item, slot, "give", "player") then
 				TriggerClientEvent("Notify", source, "negado", "Você não pode transferir este item.")
 				vCLIENT.updateInventory(source, "updateMochila")
 				return
@@ -1284,7 +1357,7 @@ function src.colocarVehicle(item,amount,slot,mPlate,mName)
 		if GetPlayerPing(source) > 0 then
 
 			if openedVehicle[mPlaca] == user_id and dataVehicle[mPlaca][1] ~= nil then
-				if handleDutyTokenTransfer(source, source, user_id, item, nil, "stash", "vehicle:"..mPlaca) then
+				if handleProtectedTransfer(source, source, user_id, item, nil, "stash", "vehicle:"..mPlaca) then
 					TriggerClientEvent("Notify", source, "negado", "Você não pode guardar este item.")
 					return
 				end
@@ -1512,7 +1585,7 @@ function src.colocarOrgChest(item,amount,slot, org, maxBau, id)
 		if openedOrg[org] == user_id then
 
 			if vRP.computeItemsWeight(dataOrgChest[org][1])+vRP.getItemWeight(item)*parseInt(amount) <= maxBau then
-				if handleDutyTokenTransfer(source, source, user_id, item, nil, "stash", "org:"..org) then
+				if handleProtectedTransfer(source, source, user_id, item, nil, "stash", "org:"..org) then
 					TriggerClientEvent("Notify", source, "negado", "Você não pode guardar este item.")
 					return
 				end
@@ -1727,7 +1800,7 @@ function src.colocarHousehest(item,amount,slot, id)
 		if openedHouseChest[id] == user_id or vRP.hasPermission(user_id, "developer.permissao") then
 
 			if vRP.computeItemsWeight(dataHouseChest[id][1])+vRP.getItemWeight(item)*parseInt(amount) <= dataHouseChest[id][3] + 0.0 then
-				if handleDutyTokenTransfer(source, source, user_id, item, nil, "stash", "house:"..tostring(id)) then
+				if handleProtectedTransfer(source, source, user_id, item, nil, "stash", "house:"..tostring(id)) then
 					TriggerClientEvent("Notify", source, "negado", "Você não pode guardar este item.")
 					return
 				end
@@ -2102,7 +2175,7 @@ function src.retirarItemRevistar(id, item, target, amount, slot)
 					end
 				end
 
-				if handleDutyTokenTransfer(nplayer, source, id, item, slot, "revistar", "player:"..tostring(user_id)) then
+				if handleProtectedTransfer(nplayer, source, id, item, slot, "revistar", "player:"..tostring(user_id)) then
 					TriggerClientEvent("Notify", source, "negado", "Você não pode transferir este item.")
 					vCLIENT.updateInventory(source, "updateMochila")
 					vCLIENT.updateInventory(nplayer, "updateMochila")
