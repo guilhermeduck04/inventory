@@ -41,7 +41,7 @@ Citizen.CreateThread(function()
                     offset = 0.5
                 })
 
-                if distance <= 1.2 then
+                if distance <= 2.0 then
                     if IsControlJustPressed(0,38) then -- Tecla E
                         TriggerServerEvent('ndk:permissao')             
                     end
@@ -81,37 +81,37 @@ local function SolicitarArmaInventario(weaponName)
 end
 
 RegisterNUICallback('m4a1', function(data, cb)
-    SolicitarArmaInventario("WEAPON_CARBINERIFLE")
+    SolicitarArmaInventario("box_WEAPON_M4")
     if cb then cb('ok') end
 end)
 
-RegisterNUICallback('m4a4', function(data, cb)
+RegisterNUICallback('parafal', function(data, cb)
     SolicitarArmaInventario("WEAPON_SPECIALCARBINE")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('mp5', function(data, cb)
-    SolicitarArmaInventario("WEAPON_SMG")
+    SolicitarArmaInventario("box_WEAPON_SMG")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('mpx', function(data, cb)
-    SolicitarArmaInventario("WEAPON_COMBATPDW")
+    SolicitarArmaInventario("box_WEAPON_COMBATPDW")
     if cb then cb('ok') end
 end)
 
-RegisterNUICallback('shot45', function(data, cb)
-    SolicitarArmaInventario("WEAPON_PUMPSHOTGUN_MK2")
-    if cb then cb('ok') end
-end)
+-- RegisterNUICallback('shot45', function(data, cb)
+--     SolicitarArmaInventario("WEAPON_PUMPSHOTGUN_MK2")
+--     if cb then cb('ok') end
+-- end)
 
-RegisterNUICallback('fiveseven', function(data, cb)
-    SolicitarArmaInventario("WEAPON_PISTOL_MK2")
-    if cb then cb('ok') end
-end)
+-- RegisterNUICallback('fiveseven', function(data, cb)
+--     SolicitarArmaInventario("WEAPON_PISTOL_MK2")
+--     if cb then cb('ok') end
+-- end)
 
 RegisterNUICallback('glock18', function(data, cb)
-    SolicitarArmaInventario("WEAPON_COMBATPISTOL")
+    SolicitarArmaInventario("box_WEAPON_COMBATPISTOL")
     if cb then cb('ok') end
 end)
 
@@ -127,7 +127,7 @@ RegisterNUICallback('KITBASICO', function(data, cb)
 end)
 
 RegisterNUICallback('Taser', function(data, cb)
-    SolicitarArmaInventario("WEAPON_STUNGUN")
+    SolicitarArmaInventario("box_WEAPON_STUNGUN")
     if cb then cb('ok') end
 end)
 
@@ -141,10 +141,10 @@ RegisterNUICallback('KCT', function(data, cb)
     if cb then cb('ok') end
 end)
 
-RegisterNUICallback('Faca', function(data, cb)
-    SolicitarArmaInventario("WEAPON_KNIFE")
-    if cb then cb('ok') end
-end)
+-- RegisterNUICallback('Faca', function(data, cb)
+--     SolicitarArmaInventario("WEAPON_KNIFE")
+--     if cb then cb('ok') end
+-- end)
 
 RegisterNUICallback('colete', function(data, cb)
     TriggerServerEvent('zr_arsenal:colete')
