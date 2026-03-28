@@ -153,6 +153,8 @@ config.items = {
 	["dorflex"] = { "Dorflex", "remedio", 0.05, 5, nil},
 	["anticoncepcional"] = { "Anticoncepcional", "remedio", 0.05, 5, nil},
 	["bandagem"] = { "Bandagem", "remedio", 0.5, 5, nil},
+	["comprimidos"] = {"Comprimidos", "remedio", 0.05, 5, nil},
+	["medickit"] = {"Medickit", "remedio", 1.0, 5, nil},
 
 	["adrenalina"] = { "Adrenalina", "remedio", 0.5, 5, nil},
 

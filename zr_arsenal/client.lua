@@ -1,6 +1,3 @@
-----------------------------------------------------------------
---------------------- REDESIGN TABLET ARSENAL ------------------
-----------------------------------------------------------------
 local Tunnel = module("vrp","lib/Tunnel")
 local Proxy = module("vrp","lib/Proxy")
 vRP = Proxy.getInterface("vRP")
@@ -8,6 +5,7 @@ client = {}
 Tunnel.bindInterface("_arsenal",client)
 
 local inMenu = false
+local canOpenArsenal = true
 
 local arsenal = {   ---- CDS DOS ARSENAL 
 	{ 457.01, -996.63, 35.06 },
@@ -41,9 +39,13 @@ Citizen.CreateThread(function()
                     offset = 0.5
                 })
 
-                if distance <= 2.0 then
-                    if IsControlJustPressed(0,38) then -- Tecla E
-                        TriggerServerEvent('ndk:permissao')             
+                if distance <= 2.0 and canOpenArsenal and not inMenu then
+                    if IsControlJustReleased(0,38) then -- Tecla E
+                        canOpenArsenal = false
+                        TriggerServerEvent('ndk:permissao')
+                        SetTimeout(400, function()
+                            canOpenArsenal = true
+                        end)
                     end
                 end
             end
@@ -80,38 +82,43 @@ local function SolicitarArmaInventario(weaponName)
     PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 1)
 end
 
+local function SolicitarMunicaoInventario(ammoName, amount)
+    TriggerServerEvent("zr_arsenal:requestAmmoItem", ammoName, amount)
+    PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 1)
+end
+
 RegisterNUICallback('m4a1', function(data, cb)
-    SolicitarArmaInventario("box_WEAPON_M4")
+    SolicitarArmaInventario("WEAPON_CARBINERIFLE")
     if cb then cb('ok') end
 end)
 
-RegisterNUICallback('parafal', function(data, cb)
+RegisterNUICallback('m4a4', function(data, cb)
     SolicitarArmaInventario("WEAPON_SPECIALCARBINE")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('mp5', function(data, cb)
-    SolicitarArmaInventario("box_WEAPON_SMG")
+    SolicitarArmaInventario("WEAPON_SMG")
     if cb then cb('ok') end
 end)
 
 RegisterNUICallback('mpx', function(data, cb)
-    SolicitarArmaInventario("box_WEAPON_COMBATPDW")
+    SolicitarArmaInventario("WEAPON_COMBATPDW")
     if cb then cb('ok') end
 end)
 
--- RegisterNUICallback('shot45', function(data, cb)
---     SolicitarArmaInventario("WEAPON_PUMPSHOTGUN_MK2")
---     if cb then cb('ok') end
--- end)
+RegisterNUICallback('shot45', function(data, cb)
+    SolicitarArmaInventario("WEAPON_PUMPSHOTGUN_MK2")
+    if cb then cb('ok') end
+end)
 
--- RegisterNUICallback('fiveseven', function(data, cb)
---     SolicitarArmaInventario("WEAPON_PISTOL_MK2")
---     if cb then cb('ok') end
--- end)
+RegisterNUICallback('fiveseven', function(data, cb)
+    SolicitarArmaInventario("WEAPON_PISTOL_MK2")
+    if cb then cb('ok') end
+end)
 
 RegisterNUICallback('glock18', function(data, cb)
-    SolicitarArmaInventario("box_WEAPON_COMBATPISTOL")
+    SolicitarArmaInventario("WEAPON_COMBATPISTOL")
     if cb then cb('ok') end
 end)
 
@@ -127,7 +134,7 @@ RegisterNUICallback('KITBASICO', function(data, cb)
 end)
 
 RegisterNUICallback('Taser', function(data, cb)
-    SolicitarArmaInventario("box_WEAPON_STUNGUN")
+    SolicitarArmaInventario("WEAPON_STUNGUN")
     if cb then cb('ok') end
 end)
 
@@ -141,10 +148,45 @@ RegisterNUICallback('KCT', function(data, cb)
     if cb then cb('ok') end
 end)
 
--- RegisterNUICallback('Faca', function(data, cb)
---     SolicitarArmaInventario("WEAPON_KNIFE")
---     if cb then cb('ok') end
--- end)
+RegisterNUICallback('Faca', function(data, cb)
+    SolicitarArmaInventario("WEAPON_KNIFE")
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_m4', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_CARBINERIFLE", 250)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_para', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_SPECIALCARBINE", 250)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_mp5', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_SMG", 250)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_mpx', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_COMBATPDW", 250)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_shot', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_PUMPSHOTGUN_MK2", 100)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_five', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_PISTOL_MK2", 200)
+    if cb then cb('ok') end
+end)
+
+RegisterNUICallback('ammo_glock', function(data, cb)
+    SolicitarMunicaoInventario("AMMO_COMBATPISTOL", 200)
+    if cb then cb('ok') end
+end)
 
 RegisterNUICallback('colete', function(data, cb)
     TriggerServerEvent('zr_arsenal:colete')

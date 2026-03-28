@@ -250,15 +250,14 @@ AddEventHandler("vrp_ponto:trocar", function()
         if groupData and groupData._config and groupData._config.gtype == "job" then
             if string.sub(k, 1, 7) == "Paisana" then
                 local jobOriginal = string.sub(k, 8)
-                if Config.Excecoes[k] then jobOriginal = Config.Excecoes[k] end 
+                if Config.Excecoes[k] then jobOriginal = Config.Excecoes[k] end
 
                 if groups[jobOriginal] then
                     vRP.removeUserGroup(user_id, k)
                     vRP.addUserGroup(user_id, jobOriginal)
                     TriggerClientEvent("Notify", source, "sucesso", "Ponto batido! Bom trabalho.")
-                    TriggerEvent("zr_arsenal:issueDutyTokens", source)
-                    
-                    activeWorkers[user_id] = true -- Adiciona na lista de salvamento
+
+                    activeWorkers[user_id] = true
                     trocou = true
                     break
                 end
@@ -271,9 +270,8 @@ AddEventHandler("vrp_ponto:trocar", function()
                     vRP.addUserGroup(user_id, jobPaisana)
                     limparArmasServico(source)
                     TriggerClientEvent("Notify", source, "aviso", "Você entrou em folga.")
-                    TriggerEvent("zr_arsenal:clearDutyTokens", source, "duty_off")
-                    
-                    activeWorkers[user_id] = nil -- Remove da lista de salvamento
+
+                    activeWorkers[user_id] = nil
                     trocou = true
                     break
                 end
@@ -281,7 +279,9 @@ AddEventHandler("vrp_ponto:trocar", function()
         end
     end
 
-    if not trocou then TriggerClientEvent("Notify", source, "negado", "Você não possui permissão.") end
+    if not trocou then
+        TriggerClientEvent("Notify", source, "negado", "Você não possui permissão.")
+    end
 end)
 
 AddEventHandler("vRP:playerLeave", function(user_id, source)
@@ -304,7 +304,6 @@ AddEventHandler("vRP:playerSpawn", function(user_id, source, first_spawn)
                         if player then
                             limparArmasServico(player)
                             TriggerClientEvent("Notify", player, "aviso", "Você entrou na cidade e foi colocado em folga.")
-                            TriggerEvent("zr_arsenal:clearDutyTokens", player, "spawn_cleanup")
                         end
                     end)
                     activeWorkers[user_id] = nil

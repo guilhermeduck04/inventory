@@ -2,6 +2,11 @@ local Tunnel = module("vrp","lib/Tunnel")
 local Proxy = module("vrp","lib/Proxy")
 local Tools = module("vrp","lib/Tools")
 vRP = Proxy.getInterface("vRP")
+
+-- FIX: carrega grupos para verificação de serviço (fallback de isPoliceOnDuty)
+local cfgGroups = module("vrp", "Config/Groups")
+local groups = cfgGroups and cfgGroups.groups or {}
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- CONNECTION
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -16,6 +21,26 @@ vTASKBAR = Tunnel.getInterface('taskbar')
 vCLIENT = Tunnel.getInterface("inventario")
 
 local func = exports["vrp"]
+
+local DUTY_ONLY_WEAPONS = {
+    ["WEAPON_CARBINERIFLE"] = true,
+    ["WEAPON_SPECIALCARBINE"] = true,
+    ["WEAPON_SMG"] = true,
+    ["WEAPON_COMBATPDW"] = true,
+    ["WEAPON_PUMPSHOTGUN_MK2"] = true,
+    ["WEAPON_PISTOL_MK2"] = true,
+    ["WEAPON_COMBATPISTOL"] = true,
+    ["WEAPON_NIGHTSTICK"] = true,
+    ["WEAPON_KNIFE"] = true,
+    ["WEAPON_STUNGUN"] = true,
+    ["WEAPON_FLASHLIGHT"] = true,
+    ["GADGET_PARACHUTE"] = true
+}
+
+local function isDutyOnlyWeapon(itemName)
+    local w = (itemName or ""):upper()
+    return DUTY_ONLY_WEAPONS[w] == true
+end
 
 
 local function normalizeWeaponName(name)
@@ -121,8 +146,19 @@ local function isPoliceOnDuty(user_id)
     if not vRP.hasPermission(user_id, "policia.permissao") then
         return false
     end
+    -- FIX: tenta checkPatrulhamento, mas cai no grupo de job como fallback
     if vRP.checkPatrulhamento then
-        return vRP.checkPatrulhamento(user_id)
+        local ok = vRP.checkPatrulhamento(user_id)
+        if ok then return true end
+    end
+    local user_groups = vRP.getUserGroups(user_id)
+    for groupName, _ in pairs(user_groups) do
+        local groupData = groups[groupName]
+        if groupData and groupData._config and groupData._config.gtype == "job" then
+            if string.sub(groupName, 1, 7) ~= "Paisana" then
+                return true
+            end
+        end
     end
     return false
 end
@@ -132,9 +168,57 @@ local function isArsenalBoundMeta(meta, user_id)
         and meta.arsenalDuty == true
         and meta.nonTransferable == true
         and meta.job == "police"
-        and meta.issuedTo == user_id
+        and tonumber(meta.issuedTo) == tonumber(user_id)  -- FIX: string vs number
 end
 
+local function handleArsenalBoundTransfer(ownerSource, actorSource, user_id, itemName, slot, action, destination)
+    local removed = false
+
+    local function consumeSlot(slotData)
+        if not slotData then return end
+        if slotData.item ~= itemName then return end
+        if not isArsenalBoundMeta(slotData.metadata, user_id) then return end
+
+        vRP.tryGetInventoryItem(user_id, itemName, slotData.amount, true, slotData.slot)
+        TriggerClientEvent("Notify", actorSource or ownerSource, "negado", "Item de serviço evaporou ao tentar transferir.")
+        removed = true
+    end
+
+    if slot then
+        consumeSlot(getItemSlotData(user_id, slot))
+    else
+        local inv = vRP.getInventory(user_id)
+        if inv then
+            for invSlot, data in pairs(inv) do
+                if data.item == itemName then
+                    local slotData = {
+                        item = data.item,
+                        amount = parseInt(data.amount or 1),
+                        slot = tostring(invSlot),
+                        metadata = getItemMetadata(data)
+                    }
+                    consumeSlot(slotData)
+                end
+            end
+        end
+    end
+
+    return removed
+end
+
+local function handleProtectedTransfer(ownerSource, actorSource, user_id, itemName, slot, action, destination)
+    if handleDutyTokenTransfer(ownerSource, actorSource, user_id, itemName, slot, action, destination) then
+        return true
+    end
+
+    if handleArsenalBoundTransfer(ownerSource, actorSource, user_id, itemName, slot, action, destination) then
+        return true
+    end
+
+    return false
+end
+
+-- FIX: funções duplicadas removidas (definidas acima com correções)
 local function handleArsenalBoundTransfer(ownerSource, actorSource, user_id, itemName, slot, action, destination)
     local removed = false
 
@@ -473,19 +557,6 @@ function src.useItem(slot, amount)
 								return
 							end
 
-							if item == DUTY_TOKEN_ITEM then
-								local slotData = getItemSlotData(user_id, slot)
-								if not slotData or not slotData.metadata then
-									TriggerClientEvent("Notify", source, "negado", "Token inválido.")
-									return
-								end
-
-								TriggerEvent("zr_arsenal:equipToken", source, slotData.metadata)
-								vCLIENT.updateInventory(source, "updateMochila")
-								updateHotbar(source)
-								return
-							end
-
                             if item == "mochila" then
                                 local maxMochila = {}
 								maxMochila[user_id] = 3
@@ -801,17 +872,34 @@ elseif item == "chave_algemas" then
 								return
 							end
 
-							local weaponName = normalizeWeaponName(item)
+								local weaponName = normalizeWeaponName(item)
 
-							local slotData = getItemSlotData(user_id, slot)
-							if slotData and isArsenalBoundMeta(slotData.metadata, user_id) and not isPoliceOnDuty(user_id) then
-								TriggerClientEvent("Notify", source, "negado", "Item de serviço só pode ser equipado em serviço.")
-								updateHotbar(source)
-								return
-							end
+								-- =========================================================
+								-- BLOQUEIO/CONFISCO: arma de serviço não pode ser usada fora de serviço
+								-- - Se tiver metadata do arsenal: confisca (remove item) + desequipa
+								-- - Failsafe: se for arma duty-only: confisca mesmo sem metadata
+								-- =========================================================
+								local slotData = getItemSlotData(user_id, slot)
+								local isBoundService = (slotData and isArsenalBoundMeta(slotData.metadata, user_id)) == true
 
-							-- Toggle: já está na mão?
-							local isEquipped = vCLIENT.checkWeaponInHand(source, weaponName)
+								-- FIX: removido isDutyOnlyWeapon - só confisca por metadata, não por tipo de arma
+								if isBoundService and not isPoliceOnDuty(user_id) then
+									-- remove 1 do item do slot (sumir do inventário)
+									vRP.tryGetInventoryItem(user_id, item, 1, true, tostring(slot))
+
+									-- se tiver na mão por algum motivo, tira
+									vRPclient._replaceWeapons(source, {})
+									TriggerClientEvent("inventory:UnequipWeapon", source)
+
+									TriggerClientEvent("Notify", source, "negado", "Você está de folga. Arma de serviço foi recolhida.")
+									vCLIENT.updateInventory(source, "updateMochila")
+									updateHotbar(source)
+									return
+								end
+
+								-- Toggle: já está na mão?
+								local isEquipped = vCLIENT.checkWeaponInHand(source, weaponName)
+
 
 								if isEquipped then
 									-- ==========================
@@ -950,35 +1038,66 @@ elseif item == "chave_algemas" then
 								return
 							end
 
+							-- BANDAGEM
 							if item == "bandagem" then
-
 								if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
 									vRPclient._CarregarObjeto(source,"amb@world_human_clipboard@male@idle_a","idle_c","v_ret_ta_firstaid",49,60309)
-
 									TriggerClientEvent("progress",source, 15000)
 									SetTimeout(15*1000, function()
 										vRPclient._DeletarObjeto(source)
 										vCLIENT._useBandagem(source)
-										TriggerClientEvent( "Notify", source, "importante", "Você utilizou a bandagem, não tome nenhum tipo de dano para não ser cancelada.." )
+										TriggerClientEvent("Notify", source, "importante", "Você utilizou a bandagem, não tome nenhum tipo de dano para não ser cancelada..")
 									end)
-									
 								end
 							end
 
+							-- COMPRIMIDOS: recupera parte da vida (até 100%)
+							if item == "comprimidos" then
+								if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
+									local currentHealth = vRPclient.getHealth(source) or 100
+									if currentHealth >= 200 then
+										vRP.giveInventoryItem(user_id, item, 1, true)
+										TriggerClientEvent("Notify", source, "negado", "Você já está com a vida cheia.")
+									else
+										vRPclient._playAnim(source, false, {{"mp_player_inteat@burger", "eat_exit"}}, false)
+										TriggerClientEvent("progress", source, 5000)
+										SetTimeout(5000, function()
+											local hp = vRPclient.getHealth(source) or 100
+											local newHp = math.min(hp + 50, 200)
+											vRPclient.setHealth(source, newHp)
+											TriggerClientEvent("Notify", source, "sucesso", "Você tomou os comprimidos e recuperou parte da vida.")
+										end)
+									end
+								end
+							end
 
+							-- MEDICKIT: recupera 100% da vida sempre
+							if item == "medickit" then
+								if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
+									vRPclient._CarregarObjeto(source,"amb@world_human_clipboard@male@idle_a","idle_c","v_ret_ta_firstaid",49,60309)
+									TriggerClientEvent("progress", source, 8000)
+									SetTimeout(8000, function()
+										vRPclient._DeletarObjeto(source)
+										vRPclient.setHealth(source, 200)
+										vRP.setUData(user_id, "vRP:health", json.encode(200))
+										TriggerClientEvent("Notify", source, "sucesso", "Você usou o Medickit e recuperou <b>100%</b> da vida.")
+									end)
+								end
+							end
+
+							-- ADRENALINA
 							if item == "adrenalina" then
 								if vRP.tryGetInventoryItem(user_id, item, 1, true, slot) then
-									local nplayer = vRPclient.getNearestPlayer(source,2)
+									local nplayer = vRPclient.getNearestPlayer(source, 2)
 									if nplayer then
-										vRPclient._playAnim(source,false,{{"mini@cpr@char_a@cpr_str","cpr_pumpchest"}},true)
-										TriggerClientEvent("progress",source, 15)
+										vRPclient._playAnim(source, false, {{"mini@cpr@char_a@cpr_str", "cpr_pumpchest"}}, true)
+										TriggerClientEvent("progress", source, 15)
 										SetTimeout(15*1000, function()
 											vRPclient.stopAnim(source)
 											vRPclient.setHealth(nplayer, 200)
-											TriggerClientEvent( "Notify", source, "importante", "Você utilizou a adrenalina no seu amigo.." )
+											TriggerClientEvent("Notify", source, "importante", "Você utilizou a adrenalina no seu amigo..")
 										end)
 									end
-									
 								end
 							end
 						end
